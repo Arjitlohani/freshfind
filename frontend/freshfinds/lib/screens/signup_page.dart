@@ -21,6 +21,21 @@ class SignupPage extends StatelessWidget {
       'address': addressController.text,
     };
 
+    // Perform client-side validation
+    if (!_isValidEmail(emailController.text)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Invalid email format')),
+      );
+      return;
+    }
+
+    if (!_isValidPhoneNumber(phoneNumberController.text)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Phone number must be 10 digits')),
+      );
+      return;
+    }
+
     final response = await http.post(
       Uri.parse(url),
       headers: headers,
@@ -45,6 +60,16 @@ class SignupPage extends StatelessWidget {
         SnackBar(content: Text('Signup failed')),
       );
     }
+  }
+
+  // Function to validate email format
+  bool _isValidEmail(String email) {
+    return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
+  }
+
+  // Function to validate phone number length
+  bool _isValidPhoneNumber(String phoneNumber) {
+    return phoneNumber.length == 10;
   }
 
   @override
