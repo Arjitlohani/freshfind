@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart'; // Importing fl_chart library
 
 import 'productmmt.dart';
 import 'usermmt.dart';
@@ -36,7 +37,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         backgroundColor: Color.fromARGB(255, 54, 99, 56),
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
+            icon: Icon(
+              Icons.logout,
+              color: Colors.white,
+            ),
             onPressed: () => _logout(context),
           ),
         ],
@@ -171,6 +175,28 @@ class HomeScreen extends StatelessWidget {
               Expanded(child: _buildContainer('Pending Orders', '30')),
               Expanded(child: _buildContainer('Orders Delivered', '20')),
             ],
+          ),
+          SizedBox(height: 20),
+          // Placeholder for Pie Chart
+          Container(
+            height: 200,
+            width: MediaQuery.of(context).size.width * 0.8,
+            child: Card(
+              child: Center(
+                child: Text('Pie Chart Placeholder'),
+              ),
+            ),
+          ),
+          SizedBox(height: 20),
+          // Placeholder for Bar Graph
+          Container(
+            height: 200,
+            width: MediaQuery.of(context).size.width * 0.8,
+            child: Card(
+              child: Center(
+                child: Text('Bar Graph Placeholder'),
+              ),
+            ),
           ),
         ],
       ),

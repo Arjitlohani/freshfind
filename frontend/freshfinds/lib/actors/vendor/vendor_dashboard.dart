@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 
 void main() {
   runApp(VendorDashboard());
@@ -129,6 +130,124 @@ class VendorHomeScreen extends StatelessWidget {
               Expanded(child: _buildContainer('Completed Orders', '20')),
             ],
           ),
+          SizedBox(height: 20),
+          // Pie Chart for Sales
+          Container(
+            height: 200,
+            width: MediaQuery.of(context).size.width * 0.8,
+            child: Card(
+              child: PieChart(
+                PieChartData(
+                  sections: [
+                    PieChartSectionData(
+                      value: 30,
+                      color: Colors.blue,
+                      title: 'Fruits',
+                      radius: 50,
+                    ),
+                    PieChartSectionData(
+                      value: 40,
+                      color: Colors.green,
+                      title: 'Vegitables',
+                      radius: 50,
+                    ),
+                    PieChartSectionData(
+                      value: 20,
+                      color: Colors.orange,
+                      title: 'Dairy',
+                      radius: 50,
+                    ),
+                    PieChartSectionData(
+                      value: 10,
+                      color: Colors.red,
+                      title: 'Bevrages',
+                      radius: 50,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: 20),
+          // Bar Graph for Income
+//           Container(
+//             height: 200,
+//             width: MediaQuery.of(context).size.width * 0.8,
+//             child: Card(
+//               child: BarChart(
+//                 BarChartData(
+//                   alignment: BarChartAlignment.center,
+//                   groupsSpace: 20,
+//                   barTouchData: BarTouchData(enabled: false),
+//                   titlesData: FlTitlesData(
+//                     show: true,
+//                     leftTitles: AxisTitles(
+//                       show: true,
+//                       getTextStyles: (value) => const TextStyle(
+//                         color: Colors.black,
+//                         fontWeight: FontWeight.bold,
+//                         fontSize: 14,
+//                       ),
+//                       margin: 8,
+//                       reservedSize: 32,
+//                       getTitles: (value) {
+//                         switch (value.toInt()) {
+//                           case 0:
+//                             return '0';
+//                           case 2:
+//                             return '20';
+//                           case 4:
+//                             return '40';
+//                           default:
+//                             return '';
+//                         }
+//                       },
+//                     ),
+//                     bottomTitles: AxisTitles(
+//                       show: true,
+//                       getTextStyles: (value) => const TextStyle(
+//                         color: Colors.black,
+//                         fontWeight: FontWeight.bold,
+//                         fontSize: 14,
+//                       ),
+//                       margin: 8,
+//                       reservedSize: 32,
+//                       getTitles: (value) {
+//                         switch (value.toInt()) {
+//                           case 0:
+//                             return 'A';
+//                           case 1:
+//                             return 'B';
+//                           case 2:
+//                             return 'C';
+//                           case 3:
+//                             return 'D';
+//                           default:
+//                             return '';
+//                         }
+//                       },
+//                     ),
+//                   ),
+//                   borderData: FlBorderData(show: false),
+//                   barGroups: [
+//                     BarChartGroupData(
+//                       x: 0,
+//                       barsSpace: 20,
+//                       barRods: [
+//                         BarChartRodData(toY: 8, color: Colors.blue),
+//                         BarChartRodData(toY: 10, color: Colors.green),
+//                         BarChartRodData(toY: 15, color: Colors.orange),
+//                         BarChartRodData(toYBarChartRodData(
+//   y: 7, // the y value
+//   colors: [Colors.red], // the color of the bar
+// ): 7, color: Colors.red),
+//                       ],
+//                     ),
+//                   ],
+//                 ),
+//               ),
+//             ),
+//           ),
         ],
       ),
     );
