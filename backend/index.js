@@ -14,8 +14,6 @@ const connection = mysql.createConnection({
     database: 'freshfinds'
 });
 
-
-
 // Endpoint to handle user login
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
@@ -44,14 +42,9 @@ app.post('/login', (req, res) => {
         }
 
         // User found, return success along with role
-        // return res.status(200).json({ message: 'Login successful', user: results[0] });
         return res.status(200).json({ message: 'Login successful', role: results[0].role });
-
     });
 });
-
-
-
 
 // Endpoint to handle user signup
 app.post('/signup', (req, res) => {
@@ -76,7 +69,7 @@ app.post('/signup', (req, res) => {
 
         // Insert the new user into the database
         const query = 'INSERT INTO user (user_name, email, password, phone_number, address) VALUES (?, ?, ?, ?, ?)';
-        connection.query(query, [username, email, password, phone_number    , address], (error) => {
+        connection.query(query, [username, email, password, phone_number, address], (error) => {
             if (error) {
                 console.error('Error executing query:', error);
                 return res.status(500).json({ message: 'Internal server error' });
@@ -88,6 +81,52 @@ app.post('/signup', (req, res) => {
     });
 });
 
+// Endpoint to get all users
+app.get('/users', (req, res) => {
+    // Query to fetch all users
+    connection.query('SELECT * FROM user', (error, results) => {
+        if (error) {
+            console.error('Error executing query:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+
+        // Return the list of users
+        return res.status(200).json({ users: results });
+    });
+});
+
+app.post('/users', (req, res) => {
+    const { username, email, password, phone_number, address, role } = req.body;
+
+    if (!username || !email || !password || !phone_number || !address || !role) {
+        return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    if (![1, 2, 3, 4].includes(role)) {
+        return res.status(400).json({ message: 'Invalid role' });
+    }
+
+    connection.query('SELECT * FROM user WHERE email = ?', [email], (error, results) => {
+        if (error) {
+            console.error('Error executing query:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+
+        if (results.length > 0) {
+            return res.status(409).json({ message: 'Email is already registered' });
+        }
+
+        const query = 'INSERT INTO user (user_name, email, password, phone_number, address, role) VALUES (?, ?, ?, ?, ?, ?)';
+        connection.query(query, [username, email, password, phone_number, address, role], (error) => {
+            if (error) {
+                console.error('Error executing query:', error);
+                return res.status(500).json({ message: 'Internal server error' });
+            }
+
+            return res.status(201).json({ message: 'User added successfully' });
+        });
+    });
+});
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);

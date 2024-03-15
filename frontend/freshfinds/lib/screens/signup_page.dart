@@ -11,7 +11,7 @@ class SignupPage extends StatelessWidget {
   final TextEditingController addressController = TextEditingController();
 
   Future<void> _signup(BuildContext context) async {
-    final String url = 'http://100.64.231.62:3000/signup';
+    final String url = 'http://192.168.1.113:3000/signup';
     final Map<String, String> headers = {'Content-Type': 'application/json'};
     final Map<String, String> body = {
       'username': usernameController.text,
@@ -110,9 +110,9 @@ class SignupPage extends StatelessWidget {
               ),
               TextButton(
                 onPressed: () {
-                  Navigator.pop(context); // Navigate back to login screen
+                  Navigator.pop(context);
                 },
-                child: Text('Already have an account? Login'),
+                child: Text('Back to Login'),
               ),
             ],
           ),

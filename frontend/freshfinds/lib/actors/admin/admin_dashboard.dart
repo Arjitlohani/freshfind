@@ -93,7 +93,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       // Call the OrderManagementScreen method here
       // return OrderManagementScreen(orders: []);
       case 3:
-        return UserManagementScreen(users: []);
+        return UserManagementScreen();
       default:
         return Container(); // Placeholder
     }
@@ -156,50 +156,47 @@ class AdminDrawer extends StatelessWidget {
 class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Expanded(child: _buildContainer('Total Orders', '100')),
-              Expanded(child: _buildContainer('Dispatched Orders', '50')),
-            ],
-          ),
-          SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Expanded(child: _buildContainer('Pending Orders', '30')),
-              Expanded(child: _buildContainer('Orders Delivered', '20')),
-            ],
-          ),
-          SizedBox(height: 20),
-          // Placeholder for Pie Chart
-          Container(
-            height: 200,
-            width: MediaQuery.of(context).size.width * 0.8,
-            child: Card(
-              child: Center(
-                child: Text('Pie Chart Placeholder'),
-              ),
+    return ListView(
+      padding: EdgeInsets.all(16),
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Expanded(child: _buildContainer('Total Orders', '100')),
+            Expanded(child: _buildContainer('Dispatched Orders', '50')),
+          ],
+        ),
+        SizedBox(height: 20),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Expanded(child: _buildContainer('Pending Orders', '30')),
+            Expanded(child: _buildContainer('Orders Delivered', '20')),
+          ],
+        ),
+        SizedBox(height: 20),
+        // Placeholder for Pie Chart
+        Container(
+          height: 200,
+          width: MediaQuery.of(context).size.width * 0.8,
+          child: Card(
+            child: Center(
+              child: Text('Pie Chart Placeholder'),
             ),
           ),
-          SizedBox(height: 20),
-          // Placeholder for Bar Graph
-          Container(
-            height: 200,
-            width: MediaQuery.of(context).size.width * 0.8,
-            child: Card(
-              child: Center(
-                child: Text('Bar Graph Placeholder'),
-              ),
+        ),
+        SizedBox(height: 20),
+        // Placeholder for Bar Graph
+        Container(
+          height: 200,
+          width: MediaQuery.of(context).size.width * 0.8,
+          child: Card(
+            child: Center(
+              child: Text('Bar Graph Placeholder'),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
