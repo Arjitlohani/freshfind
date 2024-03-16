@@ -127,6 +127,27 @@ app.post('/users', (req, res) => {
         });
     });
 });
+app.get('/users/:id', (req, res) => {
+    const userId = req.params.id;
+
+    // Query to fetch user by ID
+    const query = 'SELECT * FROM user WHERE user_id = ?'; // Assuming the primary key column is 'user_id'
+    connection.query(query, [userId], (error, results) => {
+        if (error) {
+            console.error('Error executing query:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+
+        // If no user found, return 404
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Return the user
+        return res.status(200).json(results);
+    });
+});
+
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
