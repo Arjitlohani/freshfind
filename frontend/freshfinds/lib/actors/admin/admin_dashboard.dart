@@ -88,10 +88,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       case 0:
         return HomeScreen();
       case 1:
-        return ProductManagementScreen(products: []);
+        return ProductManagementScreen();
       case 2:
-      // Call the OrderManagementScreen method here
-      // return OrderManagementScreen(orders: []);
+        // Call the OrderManagementScreen method here
+        return Container();
       case 3:
         return UserManagementScreen();
       default:

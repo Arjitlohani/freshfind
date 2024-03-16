@@ -18,10 +18,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   List<Map<String, dynamic>> _users = [];
   bool _isLoading = false;
   int _offset = 0; // Added offset variable for pagination
+
   @override
   void initState() {
     super.initState();
-    _fetchInitialUsers();
+    _fetchInitialUsers(); // Call _fetchInitialUsers() to load initial data
   }
 
   @override

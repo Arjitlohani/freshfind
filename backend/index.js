@@ -81,19 +81,19 @@ app.post('/signup', (req, res) => {
     });
 });
 
-// Endpoint to get all users
-app.get('/users', (req, res) => {
-    // Query to fetch all users
-    connection.query('SELECT * FROM user', (error, results) => {
-        if (error) {
-            console.error('Error executing query:', error);
-            return res.status(500).json({ message: 'Internal server error' });
-        }
+//Endpoint to get all users
+// app.get('/users', (req, res) => {
+//     // Query to fetch all users
+//     connection.query('SELECT * FROM user', (error, results) => {
+//         if (error) {
+//             console.error('Error executing query:', error);
+//             return res.status(500).json({ message: 'Internal server error' });
+//         }
 
-        // Return the list of users
-        return res.status(200).json({ users: results });
-    });
-});
+//         // Return the list of users
+//         return res.status(200).json({ users: results });
+//     });
+// });
 
 app.post('/users', (req, res) => {
     const { username, email, password, phone_number, address, role } = req.body;
@@ -148,13 +148,11 @@ app.get('/users/:id', (req, res) => {
     });
 });
 
-
-// Endpoint to get users with pagination
+// Endpoint to get all users
 app.get('/users', (req, res) => {
-    const limit = req.query.limit ? parseInt(req.query.limit) : 5; // Default limit to 5 if not provided
-    const offset = req.query.offset ? parseInt(req.query.offset) : 0; // Default offset to 0 if not provided
+    const limit = req.query.limit ? parseInt(req.query.limit) : 5;
+    const offset = req.query.offset ? parseInt(req.query.offset) : 0;
 
-    // Query to fetch users with pagination
     const query = 'SELECT * FROM user LIMIT ? OFFSET ?';
     connection.query(query, [limit, offset], (error, results) => {
         if (error) {
@@ -162,12 +160,67 @@ app.get('/users', (req, res) => {
             return res.status(500).json({ message: 'Internal server error' });
         }
 
-        // Return the list of users
         return res.status(200).json({ users: results });
     });
 });
 
 
+
+// Endpoint to get all products
+app.get('/products', (req, res) => {
+    const query = 'SELECT * FROM products';
+    connection.query(query, (error, results) => {
+        if (error) {
+            console.error('Error executing query:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+
+        return res.status(200).json({ products: results });
+    });
+});
+
+// Endpoint to add a new product
+app.post('/products', (req, res) => {
+    const { name, description, price, quantity, vendor_id } = req.body;
+
+    // Check if all required fields are provided
+    if (!name || !description || !price || !quantity || !vendor_id) {
+        return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    // Insert the new product into the database
+    const query = 'INSERT INTO Products (name, description, price, quantity, vendor_id) VALUES (?, ?, ?, ?, ?)';
+    connection.query(query, [name, description, price, quantity, vendor_id], (error, results) => {
+        if (error) {
+            console.error('Error adding product:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+
+        return res.status(201).json({ message: 'Product added successfully' });
+    });
+});
+
+// Endpoint to search for a product by ID
+app.get('/products/:id', (req, res) => {
+    const productId = req.params.id;
+
+    // Query to fetch product by ID
+    const query = 'SELECT * FROM Products WHERE product_id = ?';
+    connection.query(query, [productId], (error, results) => {
+        if (error) {
+            console.error('Error searching for product:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+
+        // If no product found, return 404
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+
+        // Return the product
+        return res.status(200).json(results[0]);
+    });
+});
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });
