@@ -144,22 +144,35 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             ),
             SizedBox(height: 20),
             Container(
-              height: 200, // Set the height of the container
-              padding: EdgeInsets.all(16.0),
-              child: ListView.builder(
-                itemCount: _users.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text('Username: ${_users[index]['user_name']}'),
-                    subtitle: Text(
-                      'Email: ${_users[index]['email']}\n'
-                      'Password: ${_users[index]['password']}\n'
-                      'Phone Number: ${_users[index]['phone_number']}\n'
-                      'Role: ${_users[index]['role']}\n'
-                      'Address: ${_users[index]['address']}',
-                    ),
-                  );
-                },
+              width: MediaQuery.of(context).size.width,
+              height: 200,
+              margin: EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  columns: [
+                    DataColumn(label: Text('User ID')),
+                    DataColumn(label: Text('Username')),
+                    DataColumn(label: Text('Email')),
+                    DataColumn(label: Text('Password')),
+                    DataColumn(label: Text('Phone Number')),
+                    DataColumn(label: Text('Role')),
+                    DataColumn(label: Text('Address')),
+                  ],
+                  rows: _users.map((user) {
+                    return DataRow(
+                      cells: [
+                        DataCell(Text('${user['user_id']}')),
+                        DataCell(Text('${user['user_name']}')),
+                        DataCell(Text('${user['email']}')),
+                        DataCell(Text('${user['password']}')),
+                        DataCell(Text('${user['phone_number']}')),
+                        DataCell(Text('${user['role']}')),
+                        DataCell(Text('${user['address']}')),
+                      ],
+                    );
+                  }).toList(),
+                ),
               ),
             ),
           ],
