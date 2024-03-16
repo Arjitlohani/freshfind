@@ -149,6 +149,25 @@ app.get('/users/:id', (req, res) => {
 });
 
 
+// Endpoint to get users with pagination
+app.get('/users', (req, res) => {
+    const limit = req.query.limit ? parseInt(req.query.limit) : 5; // Default limit to 5 if not provided
+    const offset = req.query.offset ? parseInt(req.query.offset) : 0; // Default offset to 0 if not provided
+
+    // Query to fetch users with pagination
+    const query = 'SELECT * FROM user LIMIT ? OFFSET ?';
+    connection.query(query, [limit, offset], (error, results) => {
+        if (error) {
+            console.error('Error executing query:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+
+        // Return the list of users
+        return res.status(200).json({ users: results });
+    });
+});
+
+
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
 });

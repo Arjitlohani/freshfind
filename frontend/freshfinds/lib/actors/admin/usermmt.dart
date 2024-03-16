@@ -16,6 +16,13 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   TextEditingController _roleController = TextEditingController();
   TextEditingController _userIdController = TextEditingController();
   List<Map<String, dynamic>> _users = [];
+  bool _isLoading = false;
+  int _offset = 0; // Added offset variable for pagination
+  @override
+  void initState() {
+    super.initState();
+    _fetchInitialUsers();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -175,6 +182,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 ),
               ),
             ),
+            ElevatedButton(
+              onPressed: _loadMoreUsers,
+              child: Text('Load More'),
+            ),
           ],
         ),
       ),
@@ -229,6 +240,50 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       }
     } catch (e) {
       _showErrorDialog('Failed to fetch user. Please try again later.');
+    }
+  }
+
+  void _fetchInitialUsers() async {
+    setState(() {
+      _isLoading = true;
+    });
+    try {
+      final response = await http.get(
+        Uri.parse('http://192.168.1.113:3000/users?limit=5&offset=$_offset'),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> responseData = jsonDecode(response.body);
+        setState(() {
+          _users = List<Map<String, dynamic>>.from(responseData);
+          _isLoading = false;
+          _offset += 5; // Increment offset for next pagination
+        });
+      } else {
+        throw Exception('Failed to fetch users: ${response.statusCode}');
+      }
+    } catch (e) {
+      _showErrorDialog('Failed to fetch users. Please try again later.');
+    }
+  }
+
+  void _loadMoreUsers() async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://192.168.1.113:3000/users?limit=10&offset=$_offset'),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> responseData = jsonDecode(response.body);
+        setState(() {
+          _users.addAll(List<Map<String, dynamic>>.from(responseData));
+          _offset += 10; // Increment offset for next pagination
+        });
+      } else {
+        throw Exception('Failed to fetch users: ${response.statusCode}');
+      }
+    } catch (e) {
+      _showErrorDialog('Failed to fetch users. Please try again later.');
     }
   }
 
