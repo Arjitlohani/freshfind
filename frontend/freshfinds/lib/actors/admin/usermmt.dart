@@ -23,6 +23,21 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   void initState() {
     super.initState();
     _fetchInitialUsers(); // Call _fetchInitialUsers() to load initial data
+    _userIdController
+        .addListener(_onUserIdChanged); // Add listener to userIdController
+  }
+
+  @override
+  void dispose() {
+    _userIdController.removeListener(
+        _onUserIdChanged); // Remove listener to avoid memory leaks
+    super.dispose();
+  }
+
+  void _onUserIdChanged() {
+    if (_userIdController.text.isEmpty) {
+      _fetchInitialUsers(); // Fetch initial users when userId text field is empty
+    }
   }
 
   @override
@@ -157,32 +172,35 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               margin: EdgeInsets.all(16.0),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  columns: [
-                    DataColumn(label: Text('User ID')),
-                    DataColumn(label: Text('Username')),
-                    DataColumn(label: Text('Email')),
-                    DataColumn(label: Text('Password')),
-                    DataColumn(label: Text('Phone Number')),
-                    DataColumn(label: Text('Role')),
-                    DataColumn(label: Text('Address')),
-                  ],
-                  rows: _users.map((user) {
-                    return DataRow(
-                      cells: [
-                        DataCell(Text('${user['user_id']}')),
-                        DataCell(Text('${user['user_name']}')),
-                        DataCell(Text('${user['email']}')),
-                        DataCell(Text('${user['password']}')),
-                        DataCell(Text('${user['phone_number']}')),
-                        DataCell(Text('${user['role']}')),
-                        DataCell(Text('${user['address']}')),
-                      ],
-                    );
-                  }).toList(),
+                child: SingleChildScrollView(
+                  child: DataTable(
+                    columns: [
+                      DataColumn(label: Text('User ID')),
+                      DataColumn(label: Text('Username')),
+                      DataColumn(label: Text('Email')),
+                      DataColumn(label: Text('Password')),
+                      DataColumn(label: Text('Phone Number')),
+                      DataColumn(label: Text('Role')),
+                      DataColumn(label: Text('Address')),
+                    ],
+                    rows: _users.map((user) {
+                      return DataRow(
+                        cells: [
+                          DataCell(Text('${user['user_id']}')),
+                          DataCell(Text('${user['user_name']}')),
+                          DataCell(Text('${user['email']}')),
+                          DataCell(Text('${user['password']}')),
+                          DataCell(Text('${user['phone_number']}')),
+                          DataCell(Text('${user['role']}')),
+                          DataCell(Text('${user['address']}')),
+                        ],
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
             ),
+
             // ElevatedButton(
             //   onPressed: _loadMoreUsers,
             //   child: Text('Load More'),
@@ -222,6 +240,12 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
   void _fetchUser() async {
     try {
+      // Check if the userIdController text field is empty
+      if (_userIdController.text.isEmpty) {
+        _fetchInitialUsers(); // If empty, fetch initial users
+        return;
+      }
+
       final response = await http.get(
         Uri.parse('http://100.64.214.68:3000/users/${_userIdController.text}'),
       );
