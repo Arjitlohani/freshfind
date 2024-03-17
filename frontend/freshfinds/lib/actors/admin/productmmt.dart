@@ -82,7 +82,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
     final quantity = int.parse(_quantityController.text);
     final vendorId = int.parse(_vendorIdController.text);
 
-    final url = Uri.parse('http://192.168.1.113:3000/products');
+    final url = Uri.parse('http://100.64.214.68:3000/products');
     final headers = <String, String>{'Content-Type': 'application/json'};
     final body = jsonEncode({
       'name': name,
@@ -107,7 +107,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
 
   void _searchProductById(BuildContext context) async {
     final productId = int.parse(_productIdController.text);
-    final url = Uri.parse('http://192.168.1.113:3000/products/$productId');
+    final url = Uri.parse('http://100.64.214.68:3000/products/$productId');
 
     try {
       final response = await http.get(url);

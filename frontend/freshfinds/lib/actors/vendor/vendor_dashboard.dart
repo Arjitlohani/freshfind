@@ -8,13 +8,7 @@ void main() {
 class VendorDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Vendor Dashboard',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
-      home: VendorDashboardScreen(),
-    );
+    return VendorDashboardScreen();
   }
 }
 
@@ -35,6 +29,15 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: Color.fromARGB(255, 54, 99, 56),
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.logout,
+              color: Colors.white,
+            ),
+            onPressed: () => _logout(context),
+          ),
+        ],
       ),
       drawer: VendorDrawer(onTap: (index) {
         setState(() {
@@ -59,6 +62,14 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
       default:
         return Container(); // Placeholder
     }
+  }
+
+  // Function to handle logout
+  void _logout(BuildContext context) {
+    // Perform any necessary logout tasks here
+    // For example, clearing authentication tokens or session data
+    // Navigate back to the login screen
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
 }
 
@@ -148,7 +159,7 @@ class VendorHomeScreen extends StatelessWidget {
                     PieChartSectionData(
                       value: 40,
                       color: Colors.green,
-                      title: 'Vegitables',
+                      title: 'Vegetables',
                       radius: 50,
                     ),
                     PieChartSectionData(
@@ -160,7 +171,7 @@ class VendorHomeScreen extends StatelessWidget {
                     PieChartSectionData(
                       value: 10,
                       color: Colors.red,
-                      title: 'Bevrages',
+                      title: 'Beverages',
                       radius: 50,
                     ),
                   ],
@@ -170,84 +181,84 @@ class VendorHomeScreen extends StatelessWidget {
           ),
           SizedBox(height: 20),
           // Bar Graph for Income
-//           Container(
-//             height: 200,
-//             width: MediaQuery.of(context).size.width * 0.8,
-//             child: Card(
-//               child: BarChart(
-//                 BarChartData(
-//                   alignment: BarChartAlignment.center,
-//                   groupsSpace: 20,
-//                   barTouchData: BarTouchData(enabled: false),
-//                   titlesData: FlTitlesData(
-//                     show: true,
-//                     leftTitles: AxisTitles(
-//                       show: true,
-//                       getTextStyles: (value) => const TextStyle(
-//                         color: Colors.black,
-//                         fontWeight: FontWeight.bold,
-//                         fontSize: 14,
-//                       ),
-//                       margin: 8,
-//                       reservedSize: 32,
-//                       getTitles: (value) {
-//                         switch (value.toInt()) {
-//                           case 0:
-//                             return '0';
-//                           case 2:
-//                             return '20';
-//                           case 4:
-//                             return '40';
-//                           default:
-//                             return '';
-//                         }
-//                       },
-//                     ),
-//                     bottomTitles: AxisTitles(
-//                       show: true,
-//                       getTextStyles: (value) => const TextStyle(
-//                         color: Colors.black,
-//                         fontWeight: FontWeight.bold,
-//                         fontSize: 14,
-//                       ),
-//                       margin: 8,
-//                       reservedSize: 32,
-//                       getTitles: (value) {
-//                         switch (value.toInt()) {
-//                           case 0:
-//                             return 'A';
-//                           case 1:
-//                             return 'B';
-//                           case 2:
-//                             return 'C';
-//                           case 3:
-//                             return 'D';
-//                           default:
-//                             return '';
-//                         }
-//                       },
-//                     ),
-//                   ),
-//                   borderData: FlBorderData(show: false),
-//                   barGroups: [
-//                     BarChartGroupData(
-//                       x: 0,
-//                       barsSpace: 20,
-//                       barRods: [
-//                         BarChartRodData(toY: 8, color: Colors.blue),
-//                         BarChartRodData(toY: 10, color: Colors.green),
-//                         BarChartRodData(toY: 15, color: Colors.orange),
-//                         BarChartRodData(toYBarChartRodData(
-//   y: 7, // the y value
-//   colors: [Colors.red], // the color of the bar
-// ): 7, color: Colors.red),
-//                       ],
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//             ),
-//           ),
+          // Container(
+          //   height: 200,
+          //   width: MediaQuery.of(context).size.width * 0.8,
+          //   child: Card(
+          //     child: BarChart(
+          //       BarChartData(
+          //         alignment: BarChartAlignment.center,
+          //         groupsSpace: 20,
+          //         barTouchData: BarTouchData(enabled: false),
+          //         titlesData: FlTitlesData(
+          //           show: true,
+          //           leftTitles: AxisTitles(
+          //             show: true,
+          //             getTextStyles: (value) => const TextStyle(
+          //               color: Colors.black,
+          //               fontWeight: FontWeight.bold,
+          //               fontSize: 14,
+          //             ),
+          //             margin: 8,
+          //             reservedSize: 32,
+          //             getTitles: (value) {
+          //               switch (value.toInt()) {
+          //                 case 0:
+          //                   return '0';
+          //                 case 2:
+          //                   return '20';
+          //                 case 4:
+          //                   return '40';
+          //                 default:
+          //                   return '';
+          //               }
+          //             },
+          //           ),
+          //           bottomTitles: AxisTitles(
+          //             show: true,
+          //             getTextStyles: (value) => const TextStyle(
+          //               color: Colors.black,
+          //               fontWeight: FontWeight.bold,
+          //               fontSize: 14,
+          //             ),
+          //             margin: 8,
+          //             reservedSize: 32,
+          //             getTitles: (value) {
+          //               switch (value.toInt()) {
+          //                 case 0:
+          //                   return 'A';
+          //                 case 1:
+          //                   return 'B';
+          //                 case 2:
+          //                   return 'C';
+          //                 case 3:
+          //                   return 'D';
+          //                 default:
+          //                   return '';
+          //               }
+          //             },
+          //           ),
+          //         ),
+          //         borderData: FlBorderData(show: false),
+          //         barGroups: [
+          //           BarChartGroupData(
+          //             x: 0,
+          //             barsSpace: 20,
+          //             barRods: [
+          //               BarChartRodData(toY: 8, color: Colors.blue),
+          //               BarChartRodData(toY: 10, color: Colors.green),
+          //               BarChartRodData(toY: 15, color: Colors.orange),
+          //               BarChartRodData(toYBarChartRodData(
+          // y: 7, // the y value
+          // colors: [Colors.red], // the color of the bar
+          // ): 7, color: Colors.red),
+          //             ],
+          //           ),
+          //         ],
+          //       ),
+          //     ),
+          //   ),
+          // ),
         ],
       ),
     );

@@ -11,7 +11,7 @@ class SignupPage extends StatelessWidget {
   final TextEditingController addressController = TextEditingController();
 
   Future<void> _signup(BuildContext context) async {
-    final String url = 'http://192.168.1.113:3000/signup';
+    final String url = 'http://100.64.214.68:3000/signup';
     final Map<String, String> headers = {'Content-Type': 'application/json'};
     final Map<String, String> body = {
       'username': usernameController.text,

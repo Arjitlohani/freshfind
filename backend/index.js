@@ -148,7 +148,6 @@ app.get('/users/:id', (req, res) => {
     });
 });
 
-// Endpoint to get all users
 app.get('/users', (req, res) => {
     const limit = req.query.limit ? parseInt(req.query.limit) : 5;
     const offset = req.query.offset ? parseInt(req.query.offset) : 0;
@@ -160,9 +159,10 @@ app.get('/users', (req, res) => {
             return res.status(500).json({ message: 'Internal server error' });
         }
 
-        return res.status(200).json({ users: results });
+        return res.status(200).json({ users: results }); // Return users within a 'users' key
     });
 });
+
 
 
 

@@ -183,10 +183,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 ),
               ),
             ),
-            ElevatedButton(
-              onPressed: _loadMoreUsers,
-              child: Text('Load More'),
-            ),
+            // ElevatedButton(
+            //   onPressed: _loadMoreUsers,
+            //   child: Text('Load More'),
+            // ),
           ],
         ),
       ),
@@ -196,7 +196,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   void _addUser() async {
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.113:3000/users'),
+        Uri.parse('http://100.64.214.68:3000/users'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -223,7 +223,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   void _fetchUser() async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.1.113:3000/users/${_userIdController.text}'),
+        Uri.parse('http://100.64.214.68:3000/users/${_userIdController.text}'),
       );
 
       if (response.statusCode == 200) {
@@ -250,11 +250,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     });
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.1.113:3000/users?limit=5&offset=$_offset'),
+        Uri.parse('http://100.64.214.68:3000/users?limit=5&offset=$_offset'),
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> responseData = jsonDecode(response.body);
+        final dynamic responseData = jsonDecode(response.body)['users'];
         setState(() {
           _users = List<Map<String, dynamic>>.from(responseData);
           _isLoading = false;
@@ -268,25 +268,25 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     }
   }
 
-  void _loadMoreUsers() async {
-    try {
-      final response = await http.get(
-        Uri.parse('http://192.168.1.113:3000/users?limit=10&offset=$_offset'),
-      );
+  // void _loadMoreUsers() async {
+  //   try {
+  //     final response = await http.get(
+  //       Uri.parse('http://100.64.214.68:3000/users?limit=10&offset=$_offset'),
+  //     );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> responseData = jsonDecode(response.body);
-        setState(() {
-          _users.addAll(List<Map<String, dynamic>>.from(responseData));
-          _offset += 10; // Increment offset for next pagination
-        });
-      } else {
-        throw Exception('Failed to fetch users: ${response.statusCode}');
-      }
-    } catch (e) {
-      _showErrorDialog('Failed to fetch users. Please try again later.');
-    }
-  }
+  //     if (response.statusCode == 200) {
+  //       final List<dynamic> responseData = jsonDecode(response.body);
+  //       setState(() {
+  //         _users.addAll(List<Map<String, dynamic>>.from(responseData));
+  //         _offset += 10; // Increment offset for next pagination
+  //       });
+  //     } else {
+  //       throw Exception('Failed to fetch users: ${response.statusCode}');
+  //     }
+  //   } catch (e) {
+  //     _showErrorDialog('Failed to fetch users. Please try again later.');
+  //   }
+  // }
 
   void _showSuccessDialog() {
     showDialog(

@@ -11,10 +11,7 @@ void main() {
 class AdminDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Admin Dashboard',
-      home: AdminDashboardScreen(),
-    );
+    return AdminDashboardScreen();
   }
 }
 
