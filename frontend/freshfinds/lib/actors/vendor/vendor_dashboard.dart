@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:freshfinds/actors/vendor/productmmt.dart';
 
 void main() {
   runApp(VendorDashboard());
@@ -54,7 +55,7 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
       case 0:
         return VendorHomeScreen();
       case 1:
-        return Container(); // Placeholder for product management
+        return ProductManagementScreen(); // Placeholder for product management
       case 2:
         return Container(); // Placeholder for order management
       case 3:
