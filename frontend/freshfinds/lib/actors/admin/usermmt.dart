@@ -228,35 +228,31 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   void _addUser() async {
     // Validate all input fields
     String usernameError = await _validateUsername(_usernameController.text);
-    String emailError = _validateEmail(_emailController.text);
-    String passwordError = _validatePassword(_passwordController.text);
-    String phoneNumberError = _validatePhoneNumber(_phoneNumberController.text);
-    String addressError = _validateAddress(_addressController.text);
-    String roleError = _validateRole(_roleController.text);
+    String emailError = await _validateEmail(_emailController.text);
+    String passwordError = await _validatePassword(_passwordController.text);
+    String phoneNumberError =
+        await _validatePhoneNumber(_phoneNumberController.text);
+    String addressError = await _validateAddress(_addressController.text);
+    String roleError = await _validateRole(_roleController.text);
 
     // Check if any input field has an error
-    if (usernameError != null ||
-        emailError != null ||
-        passwordError != null ||
-        phoneNumberError != null ||
-        addressError != null ||
-        roleError != null) {
+    if (usernameError != 'Correct' ||
+        emailError != 'Correct' ||
+        passwordError != 'Correct' ||
+        phoneNumberError != 'Correct' ||
+        addressError != 'Correct' ||
+        roleError != 'Correct') {
       // Display error message if any input field has an error
-      _showErrorDialog('Please correct the errors in the form.');
+      _showErrorDialog('Please correct the errors in the form:',
+          usernameError: usernameError,
+          emailError: emailError,
+          passwordError: passwordError,
+          phoneNumberError: phoneNumberError,
+          addressError: addressError,
+          roleError: roleError);
       return;
     }
-    // // Debugging code starts here
-    // bool isUsernameUnique =
-    //     await _checkUsernameUnique(_usernameController.text);
-    // print('Is username unique: $isUsernameUnique');
-    // // Debugging code ends here
 
-    // // Check if the username is unique
-    // if (!isUsernameUnique) {
-    //   _showErrorDialog(
-    //       'Username is not unique. Please choose a different one.');
-    //   return;
-    // }
     // Check if the username is unique
     bool isUsernameUnique =
         await _checkUsernameUnique(_usernameController.text);
@@ -603,13 +599,30 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     );
   }
 
-  void _showErrorDialog(String message) {
+  void _showErrorDialog(String message,
+      {String? usernameError,
+      String? emailError,
+      String? passwordError,
+      String? phoneNumberError,
+      String? addressError,
+      String? roleError}) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Error'),
-          content: Text(message),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (usernameError != null) Text(usernameError),
+              if (emailError != null) Text(emailError),
+              if (passwordError != null) Text(passwordError),
+              if (phoneNumberError != null) Text(phoneNumberError),
+              if (addressError != null) Text(addressError),
+              if (roleError != null) Text(roleError),
+            ],
+          ),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(),

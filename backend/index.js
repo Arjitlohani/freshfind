@@ -166,8 +166,8 @@ app.get('/users/search/name', (req, res) => {
     const name = req.query.name;
 
     // Query to fetch user by name
-    const query = 'SELECT * FROM user WHERE user_name LIKE ?'; // Assuming the column name for username is 'user_name'
-    connection.query(query, [`%${name}%`], (error, results) => {
+    const query = 'SELECT * FROM user WHERE user_name = ?'; // the column name for name is 'user_name'
+    connection.query(query, [name], (error, results) => {
         if (error) {
             console.error('Error executing query:', error);
             return res.status(500).json({ message: 'Internal server error' });
@@ -177,6 +177,7 @@ app.get('/users/search/name', (req, res) => {
         return res.status(200).json({ users: results });
     });
 });
+
 
 // Endpoint to search for a user by email
 app.get('/users/search/email', (req, res) => {
