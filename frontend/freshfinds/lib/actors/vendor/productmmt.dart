@@ -142,6 +142,17 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
   }
 
   void _addProduct(BuildContext context) async {
+    // Validate input fields
+    if (_nameController.text.isEmpty ||
+        _descriptionController.text.isEmpty ||
+        _priceController.text.isEmpty ||
+        _quantityController.text.isEmpty ||
+        _vendorIdController.text.isEmpty ||
+        _selectedCategory == null) {
+      _showErrorDialog(context, 'All fields are required.');
+      return;
+    }
+
     // Extracting data from text controllers
     final name = _nameController.text;
     final description = _descriptionController.text;
@@ -152,12 +163,6 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
     // Extracting category and getting category ID
     final category = _selectedCategory;
     final categoryId = _getCategoryId(category);
-
-    // Check if category ID is valid
-    if (categoryId == 0) {
-      _showErrorDialog(context, 'Please select a valid category.');
-      return;
-    }
 
     // Constructing request body
     final url = Uri.parse('http://192.168.1.113:3000/products');
@@ -179,9 +184,15 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
       if (response.statusCode == 201) {
         // Show success dialog
         _showSuccessDialog(context);
+      } else if (response.statusCode == 400) {
+        // Bad request - Display error message from server
+        final responseData = jsonDecode(response.body);
+        final errorMessage =
+            responseData['message'] ?? 'Failed to add product.';
+        _showErrorDialog(context, errorMessage);
       } else {
-        // Show error dialog if adding product failed
-        _showErrorDialog(context, 'Failed to add product.');
+        // Show generic error message if adding product failed
+        _showErrorDialog(context, 'Failed to add product. Please try again.');
       }
     } catch (e) {
       // Show error dialog if request failed

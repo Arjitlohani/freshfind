@@ -179,18 +179,17 @@ app.get('/products', (req, res) => {
     });
 });
 
-// Endpoint to add a new product
 app.post('/products', (req, res) => {
     const { name, description, price, quantity, vendor_id, category_id } = req.body;
 
     // Check if all required fields are provided
-    if (!name || !description || !price || !quantity || !vendor_id || category_id) {
+    if (!name || !description || !price || !quantity || !vendor_id || !category_id) {
         return res.status(400).json({ message: 'All fields are required' });
     }
 
     // Insert the new product into the database
     const query = 'INSERT INTO Products (name, description, price, quantity, vendor_id, category_id) VALUES (?, ?, ?, ?, ?, ?)';
-    connection.query(query, [name, description, price, quantity, vendor_id], (error, results) => {
+    connection.query(query, [name, description, price, quantity, vendor_id, category_id], (error, results) => {
         if (error) {
             console.error('Error adding product:', error);
             return res.status(500).json({ message: 'Internal server error' });
@@ -199,6 +198,7 @@ app.post('/products', (req, res) => {
         return res.status(201).json({ message: 'Product added successfully' });
     });
 });
+
 
 // Endpoint to search for a product by ID
 app.get('/products/:id', (req, res) => {
