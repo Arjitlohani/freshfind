@@ -1,22 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:file_picker/file_picker.dart';
 
 import 'dart:convert';
 
 class UserManagementScreen extends StatefulWidget {
+  const UserManagementScreen({super.key});
+
   @override
   _UserManagementScreenState createState() => _UserManagementScreenState();
 }
 
 class _UserManagementScreenState extends State<UserManagementScreen> {
-  TextEditingController _usernameController = TextEditingController();
-  TextEditingController _emailController = TextEditingController();
-  TextEditingController _passwordController = TextEditingController();
-  TextEditingController _phoneNumberController = TextEditingController();
-  TextEditingController _addressController = TextEditingController();
-  TextEditingController _roleController = TextEditingController();
-  TextEditingController _userIdController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _roleController = TextEditingController();
+  final TextEditingController _userIdController = TextEditingController();
   List<Map<String, dynamic>> _users = [];
   bool _isLoading = false;
   int _offset = 0; // Added offset variable for pagination
@@ -46,7 +47,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('User Management'),
+        title: const Text('User Management'),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -104,19 +105,19 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             }),
             ElevatedButton(
               onPressed: _addUser,
-              child: Text('Add User'),
+              child: const Text('Add User'),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Container(
-              margin: EdgeInsets.all(16.0),
-              padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+              margin: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey),
                 borderRadius: BorderRadius.circular(8.0),
               ),
               child: TextField(
                 controller: _userIdController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   border: InputBorder.none,
                   hintText: 'Search by User ID',
                 ),
@@ -124,18 +125,18 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             ),
             ElevatedButton(
               onPressed: _fetchUser,
-              child: Text('Search'),
+              child: const Text('Search'),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Container(
               width: MediaQuery.of(context).size.width,
               height: 200,
-              margin: EdgeInsets.all(16.0),
+              margin: const EdgeInsets.all(16.0),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: SingleChildScrollView(
                   child: DataTable(
-                    columns: [
+                    columns: const [
                       DataColumn(label: Text('User ID')),
                       DataColumn(label: Text('Username')),
                       DataColumn(label: Text('Email')),
@@ -159,13 +160,13 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                           DataCell(
                             ElevatedButton(
                               onPressed: () => _editUser(user),
-                              child: Text('Edit'),
+                              child: const Text('Edit'),
                             ),
                           ),
                           DataCell(
                             ElevatedButton(
                               onPressed: () => _deleteUser(user),
-                              child: Text('Delete'),
+                              child: const Text('Delete'),
                             ),
                           ),
                         ],
@@ -188,8 +189,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       builder: (context, snapshot) {
         String? errorText = snapshot.data;
         return Container(
-          margin: EdgeInsets.all(16.0),
-          padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+          margin: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
           decoration: BoxDecoration(
             border: Border.all(
               color: errorText == null || errorText == 'Correct'
@@ -212,11 +213,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 ),
                 keyboardType: keyboardType,
               ),
-              SizedBox(height: 4),
+              const SizedBox(height: 4),
               if (errorText != null && errorText != 'Correct')
                 Text(
                   errorText,
-                  style: TextStyle(color: Colors.red),
+                  style: const TextStyle(color: Colors.red),
                 ),
             ],
           ),
@@ -228,12 +229,12 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   void _addUser() async {
     // Validate all input fields
     String usernameError = await _validateUsername(_usernameController.text);
-    String emailError = await _validateEmail(_emailController.text);
-    String passwordError = await _validatePassword(_passwordController.text);
+    String emailError = _validateEmail(_emailController.text);
+    String passwordError = _validatePassword(_passwordController.text);
     String phoneNumberError =
-        await _validatePhoneNumber(_phoneNumberController.text);
-    String addressError = await _validateAddress(_addressController.text);
-    String roleError = await _validateRole(_roleController.text);
+        _validatePhoneNumber(_phoneNumberController.text);
+    String addressError = _validateAddress(_addressController.text);
+    String roleError = _validateRole(_roleController.text);
 
     // Check if any input field has an error
     if (usernameError != 'Correct' ||
@@ -430,20 +431,20 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   }
 
   void _editUser(Map<String, dynamic> user) async {
-    TextEditingController _editUsernameController = TextEditingController();
-    TextEditingController _editEmailController = TextEditingController();
-    TextEditingController _editPasswordController = TextEditingController();
-    TextEditingController _editPhoneNumberController = TextEditingController();
-    TextEditingController _editAddressController = TextEditingController();
-    TextEditingController _editRoleController = TextEditingController();
+    TextEditingController editUsernameController = TextEditingController();
+    TextEditingController editEmailController = TextEditingController();
+    TextEditingController editPasswordController = TextEditingController();
+    TextEditingController editPhoneNumberController = TextEditingController();
+    TextEditingController editAddressController = TextEditingController();
+    TextEditingController editRoleController = TextEditingController();
 
     _userIdController.text = user['user_id'].toString();
-    _editUsernameController.text = user['user_name'];
-    _editEmailController.text = user['email'];
-    _editPasswordController.text = user['password'];
-    _editPhoneNumberController.text = user['phone_number'];
-    _editAddressController.text = user['address'];
-    _editRoleController.text = user['role'] != null
+    editUsernameController.text = user['user_name'];
+    editEmailController.text = user['email'];
+    editPasswordController.text = user['password'];
+    editPhoneNumberController.text = user['phone_number'];
+    editAddressController.text = user['address'];
+    editRoleController.text = user['role'] != null
         ? user['role'].toString()
         : ''; // Ensure role value is converted to string
 
@@ -451,33 +452,33 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Edit User'),
+          title: const Text('Edit User'),
           content: SingleChildScrollView(
             child: Column(
               children: [
                 TextField(
-                  controller: _editUsernameController,
-                  decoration: InputDecoration(labelText: 'Username'),
+                  controller: editUsernameController,
+                  decoration: const InputDecoration(labelText: 'Username'),
                 ),
                 TextField(
-                  controller: _editEmailController,
-                  decoration: InputDecoration(labelText: 'Email'),
+                  controller: editEmailController,
+                  decoration: const InputDecoration(labelText: 'Email'),
                 ),
                 TextField(
-                  controller: _editPasswordController,
-                  decoration: InputDecoration(labelText: 'Password'),
+                  controller: editPasswordController,
+                  decoration: const InputDecoration(labelText: 'Password'),
                 ),
                 TextField(
-                  controller: _editPhoneNumberController,
-                  decoration: InputDecoration(labelText: 'Phone Number'),
+                  controller: editPhoneNumberController,
+                  decoration: const InputDecoration(labelText: 'Phone Number'),
                 ),
                 TextField(
-                  controller: _editAddressController,
-                  decoration: InputDecoration(labelText: 'Address'),
+                  controller: editAddressController,
+                  decoration: const InputDecoration(labelText: 'Address'),
                 ),
                 TextField(
-                  controller: _editRoleController,
-                  decoration: InputDecoration(labelText: 'Role'),
+                  controller: editRoleController,
+                  decoration: const InputDecoration(labelText: 'Role'),
                 ),
               ],
             ),
@@ -487,14 +488,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () async {
                 Navigator.of(context).pop();
                 try {
                   // Validate role value
-                  if (_editRoleController.text.isNotEmpty) {
+                  if (editRoleController.text.isNotEmpty) {
                     final response = await http.put(
                       Uri.parse(
                           'http://192.168.1.113:3000/users/${user['user_id']}'),
@@ -502,12 +503,12 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         'Content-Type': 'application/json; charset=UTF-8',
                       },
                       body: jsonEncode(<String, dynamic>{
-                        'username': _editUsernameController.text,
-                        'email': _editEmailController.text,
-                        'password': _editPasswordController.text,
-                        'phone_number': _editPhoneNumberController.text,
-                        'address': _editAddressController.text,
-                        'role': _editRoleController.text,
+                        'username': editUsernameController.text,
+                        'email': editEmailController.text,
+                        'password': editPasswordController.text,
+                        'phone_number': editPhoneNumberController.text,
+                        'address': editAddressController.text,
+                        'role': editRoleController.text,
                       }),
                     );
 
@@ -527,7 +528,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       'Failed to update user. Please try again later.');
                 }
               },
-              child: Text('Save'),
+              child: const Text('Save'),
             ),
           ],
         );
@@ -540,14 +541,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Delete User'),
-          content: Text('Are you sure you want to delete this user?'),
+          title: const Text('Delete User'),
+          content: const Text('Are you sure you want to delete this user?'),
           actions: <Widget>[
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
               },
-              child: Text('Cancel'),
+              child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () async {
@@ -570,7 +571,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                       'Failed to delete user. Please try again later.');
                 }
               },
-              child: Text('Delete'),
+              child: const Text('Delete'),
             ),
           ],
         );
@@ -583,7 +584,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Success'),
+          title: const Text('Success'),
           content: Text(message),
           actions: <Widget>[
             TextButton(
@@ -591,7 +592,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 Navigator.of(context).pop();
                 _clearTextFields();
               },
-              child: Text('OK'),
+              child: const Text('OK'),
             ),
           ],
         );
@@ -610,7 +611,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Error'),
+          title: const Text('Error'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -626,7 +627,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('OK'),
+              child: const Text('OK'),
             ),
           ],
         );

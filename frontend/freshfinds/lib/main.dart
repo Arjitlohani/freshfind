@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'actors/driver/driver_dashboard.dart';
 import 'screens/login_page.dart';
 import 'screens/signup_page.dart';
 import 'actors/admin/admin_dashboard.dart';
@@ -7,10 +6,12 @@ import 'actors/vendor/vendor_dashboard.dart';
 import 'actors/customer/customer_dashboard.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -22,9 +23,9 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => LoginPage(),
         '/signup': (context) => SignupPage(),
-        '/adminDashboard': (context) => AdminDashboard(),
-        '/vendorDashboard': (context) => VendorDashboard(),
-        '/customerDashboard': (context) => DashboardScreen(),
+        '/adminDashboard': (context) => const AdminDashboard(),
+        '/vendorDashboard': (context) => const VendorDashboard(),
+        '/customerDashboard': (context) => const DashboardScreen(),
         // '/driverDashboard': (context) => DriverDashboard(),
       },
     );

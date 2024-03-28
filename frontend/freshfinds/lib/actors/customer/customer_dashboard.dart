@@ -3,10 +3,12 @@ import 'fruits.dart';
 import 'vegatables.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -14,12 +16,14 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: DashboardScreen(),
+      home: const DashboardScreen(),
     );
   }
 }
 
 class DashboardScreen extends StatefulWidget {
+  const DashboardScreen({super.key});
+
   @override
   _DashboardScreenState createState() => _DashboardScreenState();
 }
@@ -41,7 +45,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
                 child: TextFormField(
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     hintText: 'Search...',
                     border: InputBorder.none,
                   ),
@@ -58,9 +62,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
             Container(
-              padding: EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
               color: Colors.blue,
-              child: Column(
+              child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
@@ -82,8 +86,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             ),
-            SizedBox(height: 20),
-            Padding(
+            const SizedBox(height: 20),
+            const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
               child: Text(
                 'Categories',
@@ -93,12 +97,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
             ),
-            SizedBox(height: 12),
-            Container(
+            const SizedBox(height: 12),
+            SizedBox(
               height: 120,
               child: ListView(
                 scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 children: [
                   CategoryCard(
                     title: 'Fruits',
@@ -107,11 +111,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => FruitsPage()),
+                        MaterialPageRoute(builder: (context) => const FruitsPage()),
                       );
                     },
                   ),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 12),
                   CategoryCard(
                     title: 'Vegetables',
                     icon: Icons.eco,
@@ -120,19 +124,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => VegetablesPage()),
+                            builder: (context) => const VegetablesPage()),
                       );
                     },
                   ),
-                  SizedBox(width: 12),
-                  CategoryCard(
+                  const SizedBox(width: 12),
+                  const CategoryCard(
                     title: 'Dairy',
                     icon: Icons.local_dining,
                     color: Colors.blue,
                     // Add onTap functionality if needed
                   ),
-                  SizedBox(width: 12),
-                  CategoryCard(
+                  const SizedBox(width: 12),
+                  const CategoryCard(
                     title: 'Beverages',
                     icon: Icons.local_drink,
                     color: Colors.red,
@@ -141,8 +145,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             ),
-            SizedBox(height: 20),
-            Padding(
+            const SizedBox(height: 20),
+            const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
               child: Text(
                 'Recommended',
@@ -152,8 +156,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
             ),
-            SizedBox(height: 12),
-            SingleChildScrollView(
+            const SizedBox(height: 12),
+            const SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
@@ -177,13 +181,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             // Add more content here as needed
           ],
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        items: [
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
@@ -201,7 +205,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           if (index == 1) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => CartScreen()),
+              MaterialPageRoute(builder: (context) => const CartScreen()),
             );
           }
         },
@@ -210,8 +214,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         onPressed: () {
           // Add QR code scanner functionality
         },
-        icon: Icon(Icons.qr_code),
-        label: Text(''),
+        icon: const Icon(Icons.qr_code),
+        label: const Text(''),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
@@ -219,10 +223,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   AppBar _buildRegularAppBar() {
     return AppBar(
-      title: Text('Fresh Finds'),
+      title: const Text('Fresh Finds'),
       actions: [
         IconButton(
-          icon: Icon(Icons.search),
+          icon: const Icon(Icons.search),
           onPressed: () {
             setState(() {
               _isSearchFieldVisible = true;
@@ -236,7 +240,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   AppBar _buildSearchAppBar() {
     return AppBar(
       title: TextFormField(
-        decoration: InputDecoration(
+        decoration: const InputDecoration(
           hintText: 'Search...',
           border: InputBorder.none,
         ),
@@ -252,7 +256,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       actions: [
         IconButton(
-          icon: Icon(Icons.close),
+          icon: const Icon(Icons.close),
           onPressed: () {
             setState(() {
               _isSearchFieldVisible = false;
@@ -270,7 +274,7 @@ class CategoryCard extends StatelessWidget {
   final Color color;
   final Function()? onTap;
 
-  const CategoryCard({
+  const CategoryCard({super.key, 
     required this.title,
     required this.icon,
     required this.color,
@@ -295,10 +299,10 @@ class CategoryCard extends StatelessWidget {
               color: Colors.white,
               size: 40,
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
@@ -315,7 +319,7 @@ class RecommendedItemCard extends StatelessWidget {
   final String image;
   final String price;
 
-  const RecommendedItemCard({
+  const RecommendedItemCard({super.key, 
     required this.title,
     required this.image,
     required this.price,
@@ -323,7 +327,7 @@ class RecommendedItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SizedBox(
       width: 150,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -337,15 +341,15 @@ class RecommendedItemCard extends StatelessWidget {
               fit: BoxFit.cover,
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           Text(
             price,
             style: TextStyle(
@@ -353,12 +357,12 @@ class RecommendedItemCard extends StatelessWidget {
               color: Colors.grey[600],
             ),
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           ElevatedButton(
             onPressed: () {
               // Add to cart functionality
             },
-            child: Text('Add to Cart'),
+            child: const Text('Add to Cart'),
           ),
         ],
       ),
@@ -367,13 +371,15 @@ class RecommendedItemCard extends StatelessWidget {
 }
 
 class CartScreen extends StatelessWidget {
+  const CartScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Cart'),
+        title: const Text('Cart'),
       ),
-      body: Center(
+      body: const Center(
         child: Text('Cart contents will be displayed here'),
       ),
     );

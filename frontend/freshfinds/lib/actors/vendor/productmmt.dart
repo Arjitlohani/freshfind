@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:io';
 
 class ProductManagementScreen extends StatefulWidget {
   @override
@@ -15,6 +16,36 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
   TextEditingController _quantityController = TextEditingController();
   TextEditingController _vendorIdController = TextEditingController();
   TextEditingController _productIdController = TextEditingController();
+  String? _selectedCategory;
+  String? category_id;
+
+  List<Map<String, dynamic>> _category = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCategories();
+  }
+
+  Future<void> _fetchCategories() async {
+    final url = Uri.parse('http://192.168.1.113:3000/category');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        setState(() {
+          _category = List<Map<String, dynamic>>.from(responseData['category']);
+          print(_category);
+        });
+      } else {
+        throw Exception('Failed to load categories: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching categories: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +56,6 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
-          // Add SingleChildScrollView to fit screen size
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -53,6 +83,42 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                 decoration: InputDecoration(labelText: 'Vendor ID'),
               ),
               SizedBox(height: 20),
+              DropdownButtonFormField<String>(
+                value: _selectedCategory,
+                onChanged: (newValue) {
+                  setState(() {
+                    _selectedCategory = newValue;
+                    _updateInputFieldValue(
+                        newValue); // Update the category ID value
+                  });
+                },
+                items: [
+                  DropdownMenuItem(
+                    value: 'Fruits',
+                    child: Text('Fruits'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'Vegetables',
+                    child: Text('Vegetables'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'Beverages',
+                    child: Text('Beverages'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'Dairy',
+                    child: Text('Dairy'),
+                  ),
+                ],
+                decoration: InputDecoration(labelText: 'Select Category'),
+              ),
+              SizedBox(height: 20),
+              TextField(
+                controller: TextEditingController(text: category_id),
+                enabled: false,
+                decoration: InputDecoration(labelText: 'Category ID'),
+              ),
+              SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => _addProduct(context),
                 child: Text('Add Product'),
@@ -76,12 +142,24 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
   }
 
   void _addProduct(BuildContext context) async {
+    // Extracting data from text controllers
     final name = _nameController.text;
     final description = _descriptionController.text;
     final price = double.parse(_priceController.text);
     final quantity = int.parse(_quantityController.text);
     final vendorId = int.parse(_vendorIdController.text);
 
+    // Extracting category and getting category ID
+    final category = _selectedCategory;
+    final categoryId = _getCategoryId(category);
+
+    // Check if category ID is valid
+    if (categoryId == 0) {
+      _showErrorDialog(context, 'Please select a valid category.');
+      return;
+    }
+
+    // Constructing request body
     final url = Uri.parse('http://192.168.1.113:3000/products');
     final headers = <String, String>{'Content-Type': 'application/json'};
     final body = jsonEncode({
@@ -90,17 +168,23 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
       'price': price,
       'quantity': quantity,
       'vendor_id': vendorId,
+      'category_id': categoryId,
     });
 
     try {
+      // Sending POST request to add product
       final response = await http.post(url, headers: headers, body: body);
 
+      // Checking response status code
       if (response.statusCode == 201) {
+        // Show success dialog
         _showSuccessDialog(context);
       } else {
+        // Show error dialog if adding product failed
         _showErrorDialog(context, 'Failed to add product.');
       }
     } catch (e) {
+      // Show error dialog if request failed
       _showErrorDialog(context, 'Failed to add product. Please try again.');
     }
   }
@@ -114,8 +198,6 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
 
       if (response.statusCode == 200) {
         final productData = jsonDecode(response.body);
-        // Handle product data
-        // For example, display product details in a dialog
         _showProductDetailsDialog(context, productData);
       } else {
         _showErrorDialog(context, 'Product not found.');
@@ -126,8 +208,6 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
   }
 
   void _showProductDetailsDialog(BuildContext context, dynamic productData) {
-    // Implement dialog to display product details
-    // For example:
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -192,5 +272,45 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
     _quantityController.clear();
     _vendorIdController.clear();
     _productIdController.clear();
+    setState(() {
+      _selectedCategory = null;
+      category_id = '0';
+    });
+  }
+
+  void _updateInputFieldValue(String? category) {
+    setState(() {
+      switch (category) {
+        case 'Fruits':
+          category_id = '1';
+          break;
+        case 'Vegetables':
+          category_id = '2';
+          break;
+        case 'Beverages':
+          category_id = '3';
+          break;
+        case 'Dairy':
+          category_id = '4';
+          break;
+        default:
+          category_id = '0';
+      }
+    });
+  }
+
+  int _getCategoryId(String? category) {
+    switch (category) {
+      case 'Fruits':
+        return 1;
+      case 'Vegetables':
+        return 2;
+      case 'Beverages':
+        return 3;
+      case 'Dairy':
+        return 4;
+      default:
+        return 0; // Or any default category ID
+    }
   }
 }

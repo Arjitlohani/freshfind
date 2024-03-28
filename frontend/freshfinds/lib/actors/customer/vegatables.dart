@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 
 class VegetablesPage extends StatelessWidget {
+  const VegetablesPage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Vegetables'),
+        title: const Text('Vegetables'),
       ),
-      body: SingleChildScrollView(
+      body: const SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.all(16.0),
               child: Text(
                 'List of Vegetables',
                 style: TextStyle(
@@ -49,7 +51,7 @@ class VegetableItemCard extends StatelessWidget {
   final String image;
   final String price;
 
-  const VegetableItemCard({
+  const VegetableItemCard({super.key, 
     required this.title,
     required this.image,
     required this.price,
@@ -58,7 +60,7 @@ class VegetableItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: EdgeInsets.all(16.0),
+      margin: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -76,12 +78,12 @@ class VegetableItemCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 Text(
                   price,
                   style: TextStyle(

@@ -6,8 +6,10 @@ class LoginPage extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  LoginPage({super.key});
+
   Future<void> _login(BuildContext context) async {
-    final String url = 'http://192.168.1.113:3000/login';
+    const String url = 'http://192.168.1.113:3000/login';
     final Map<String, String> headers = {'Content-Type': 'application/json'};
     final Map<String, String> body = {
       'email': emailController.text,
@@ -35,7 +37,7 @@ class LoginPage extends StatelessWidget {
 
           // Show login successful message
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Login successful')),
+            const SnackBar(content: Text('Login successful')),
           );
 
           // Navigate to the appropriate dashboard based on roleId
@@ -43,20 +45,20 @@ class LoginPage extends StatelessWidget {
         } else {
           // Show error message if 'role_id' field is missing
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Role ID not found in response')),
+            const SnackBar(content: Text('Role ID not found in response')),
           );
         }
       } else {
         // Show error message if response status code is not 200
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login failed')),
+          const SnackBar(content: Text('Login failed')),
         );
       }
     } catch (e) {
       // Handle exceptions
       print('Error during login: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error during login. Please try again later.')),
+        const SnackBar(content: Text('Error during login. Please try again later.')),
       );
     }
   }
@@ -84,34 +86,34 @@ class LoginPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Login')),
+      appBar: AppBar(title: const Text('Login')),
       body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               TextFormField(
                 controller: emailController,
-                decoration: InputDecoration(labelText: 'Email'),
+                decoration: const InputDecoration(labelText: 'Email'),
               ),
-              SizedBox(height: 16), // Add some spacing between fields
+              const SizedBox(height: 16), // Add some spacing between fields
               TextFormField(
                 controller: passwordController,
                 obscureText: true,
-                decoration: InputDecoration(labelText: 'Password'),
+                decoration: const InputDecoration(labelText: 'Password'),
               ),
-              SizedBox(height: 16), // Add some spacing between fields
+              const SizedBox(height: 16), // Add some spacing between fields
               ElevatedButton(
                 onPressed: () => _login(context),
-                child: Text('Login'),
+                child: const Text('Login'),
               ),
-              SizedBox(height: 16), // Add some spacing between fields
+              const SizedBox(height: 16), // Add some spacing between fields
               TextButton(
                 onPressed: () {
                   Navigator.pushNamed(context, '/signup');
                 },
-                child: Text('Sign up'),
+                child: const Text('Sign up'),
               ),
             ],
           ),

@@ -10,6 +10,8 @@ class SignupPage extends StatelessWidget {
   final TextEditingController phoneNumberController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
 
+  SignupPage({super.key});
+
   Future<void> _signup(BuildContext context) async {
     const String url = 'http://192.168.1.113:3000/signup';
     final Map<String, String> headers = {'Content-Type': 'application/json'};
@@ -24,14 +26,14 @@ class SignupPage extends StatelessWidget {
     // Perform client-side validation
     if (!_isValidEmail(emailController.text)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Invalid email format')),
+        const SnackBar(content: Text('Invalid email format')),
       );
       return;
     }
 
     if (!_isValidPhoneNumber(phoneNumberController.text)) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Phone number must be 10 digits')),
+        const SnackBar(content: Text('Phone number must be 10 digits')),
       );
       return;
     }
@@ -45,7 +47,7 @@ class SignupPage extends StatelessWidget {
     if (response.statusCode == 201) {
       // Change the status code check to 201
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Signup successful')),
+        const SnackBar(content: Text('Signup successful')),
       );
 
       // Navigate to login screen after successful signup
@@ -57,7 +59,7 @@ class SignupPage extends StatelessWidget {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Signup failed')),
+        const SnackBar(content: Text('Signup failed')),
       );
     }
   }
@@ -75,44 +77,44 @@ class SignupPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Sign up')),
+      appBar: AppBar(title: const Text('Sign up')),
       resizeToAvoidBottomInset: true,
       body: SingleChildScrollView(
         child: Padding(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               TextFormField(
                 controller: usernameController,
-                decoration: InputDecoration(labelText: 'Username'),
+                decoration: const InputDecoration(labelText: 'Username'),
               ),
               TextFormField(
                 controller: emailController,
-                decoration: InputDecoration(labelText: 'Email'),
+                decoration: const InputDecoration(labelText: 'Email'),
               ),
               TextFormField(
                 controller: passwordController,
                 obscureText: true,
-                decoration: InputDecoration(labelText: 'Password'),
+                decoration: const InputDecoration(labelText: 'Password'),
               ),
               TextFormField(
                 controller: phoneNumberController,
-                decoration: InputDecoration(labelText: 'Phone Number'),
+                decoration: const InputDecoration(labelText: 'Phone Number'),
               ),
               TextFormField(
                 controller: addressController,
-                decoration: InputDecoration(labelText: 'Address'),
+                decoration: const InputDecoration(labelText: 'Address'),
               ),
               ElevatedButton(
                 onPressed: () => _signup(context),
-                child: Text('Sign up'),
+                child: const Text('Sign up'),
               ),
               TextButton(
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                child: Text('Back to Login'),
+                child: const Text('Back to Login'),
               ),
             ],
           ),

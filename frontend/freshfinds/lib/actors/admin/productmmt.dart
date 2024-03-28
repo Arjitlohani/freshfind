@@ -3,24 +3,26 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class ProductManagementScreen extends StatefulWidget {
+  const ProductManagementScreen({super.key});
+
   @override
   _ProductManagementScreenState createState() =>
       _ProductManagementScreenState();
 }
 
 class _ProductManagementScreenState extends State<ProductManagementScreen> {
-  TextEditingController _nameController = TextEditingController();
-  TextEditingController _descriptionController = TextEditingController();
-  TextEditingController _priceController = TextEditingController();
-  TextEditingController _quantityController = TextEditingController();
-  TextEditingController _vendorIdController = TextEditingController();
-  TextEditingController _productIdController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _quantityController = TextEditingController();
+  final TextEditingController _vendorIdController = TextEditingController();
+  final TextEditingController _productIdController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Product Management'),
+        title: const Text('Product Management'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -31,42 +33,42 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
             children: [
               TextField(
                 controller: _nameController,
-                decoration: InputDecoration(labelText: 'Name'),
+                decoration: const InputDecoration(labelText: 'Name'),
               ),
               TextField(
                 controller: _descriptionController,
-                decoration: InputDecoration(labelText: 'Description'),
+                decoration: const InputDecoration(labelText: 'Description'),
               ),
               TextField(
                 controller: _priceController,
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: 'Price'),
+                decoration: const InputDecoration(labelText: 'Price'),
               ),
               TextField(
                 controller: _quantityController,
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: 'Quantity'),
+                decoration: const InputDecoration(labelText: 'Quantity'),
               ),
               TextField(
                 controller: _vendorIdController,
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: 'Vendor ID'),
+                decoration: const InputDecoration(labelText: 'Vendor ID'),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => _addProduct(context),
-                child: Text('Add Product'),
+                child: const Text('Add Product'),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               TextField(
                 controller: _productIdController,
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: 'Search Product by ID'),
+                decoration: const InputDecoration(labelText: 'Search Product by ID'),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => _searchProductById(context),
-                child: Text('Search Product'),
+                child: const Text('Search Product'),
               ),
             ],
           ),
@@ -132,13 +134,13 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Product Details'),
+          title: const Text('Product Details'),
           content: Text(
               'Product ID: ${productData['product_id']}\nName: ${productData['name']}\nDescription: ${productData['description']}\nPrice: ${productData['price']}\nQuantity: ${productData['quantity']}\nVendor ID: ${productData['vendor_id']}'),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('OK'),
+              child: const Text('OK'),
             ),
           ],
         );
@@ -151,15 +153,15 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Success'),
-          content: Text('Product added successfully.'),
+          title: const Text('Success'),
+          content: const Text('Product added successfully.'),
           actions: <Widget>[
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 _clearTextFields();
               },
-              child: Text('OK'),
+              child: const Text('OK'),
             ),
           ],
         );
@@ -172,12 +174,12 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Error'),
+          title: const Text('Error'),
           content: Text(message),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('OK'),
+              child: const Text('OK'),
             ),
           ],
         );

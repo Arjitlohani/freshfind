@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart'; // Importing fl_chart library
+// Importing fl_chart library
 
 import 'productmmt.dart';
 import 'usermmt.dart';
 
 void main() {
-  runApp(AdminDashboard());
+  runApp(const AdminDashboard());
 }
 
 class AdminDashboard extends StatelessWidget {
+  const AdminDashboard({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return AdminDashboardScreen();
+    return const AdminDashboardScreen();
   }
 }
 
 class AdminDashboardScreen extends StatefulWidget {
+  const AdminDashboardScreen({super.key});
+
   @override
   _AdminDashboardScreenState createState() => _AdminDashboardScreenState();
 }
@@ -27,14 +31,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Admin Dashboard',
           style: TextStyle(color: Colors.white),
         ),
-        backgroundColor: Color.fromARGB(255, 54, 99, 56),
+        backgroundColor: const Color.fromARGB(255, 54, 99, 56),
         actions: [
           IconButton(
-            icon: Icon(
+            icon: const Icon(
               Icons.logout,
               color: Colors.white,
             ),
@@ -51,14 +55,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       body: _buildBody(_currentIndex),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor:
-            Color.fromARGB(255, 54, 99, 56), // Set background color to green
+            const Color.fromARGB(255, 54, 99, 56), // Set background color to green
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() {
             _currentIndex = index;
           });
         },
-        items: [
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
@@ -83,14 +87,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   Widget _buildBody(int index) {
     switch (index) {
       case 0:
-        return HomeScreen();
+        return const HomeScreen();
       case 1:
-        return ProductManagementScreen();
+        return const ProductManagementScreen();
       case 2:
         // Call the OrderManagementScreen method here
         return Container();
       case 3:
-        return UserManagementScreen();
+        return const UserManagementScreen();
       default:
         return Container(); // Placeholder
     }
@@ -108,7 +112,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 class AdminDrawer extends StatelessWidget {
   final Function(int) onTap;
 
-  const AdminDrawer({required this.onTap});
+  const AdminDrawer({super.key, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +120,7 @@ class AdminDrawer extends StatelessWidget {
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[
-          DrawerHeader(
+          const DrawerHeader(
             decoration: BoxDecoration(
               color: Color.fromARGB(255, 54, 99, 56),
             ),
@@ -129,19 +133,19 @@ class AdminDrawer extends StatelessWidget {
             ),
           ),
           ListTile(
-            title: Text('Home'),
+            title: const Text('Home'),
             onTap: () => onTap(0),
           ),
           ListTile(
-            title: Text('Product Management'),
+            title: const Text('Product Management'),
             onTap: () => onTap(1),
           ),
           ListTile(
-            title: Text('Order Management'),
+            title: const Text('Order Management'),
             onTap: () => onTap(2),
           ),
           ListTile(
-            title: Text('User Management'),
+            title: const Text('User Management'),
             onTap: () => onTap(3),
           ),
         ],
@@ -151,10 +155,12 @@ class AdminDrawer extends StatelessWidget {
 }
 
 class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -163,7 +169,7 @@ class HomeScreen extends StatelessWidget {
             Expanded(child: _buildContainer('Dispatched Orders', '50')),
           ],
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -171,23 +177,23 @@ class HomeScreen extends StatelessWidget {
             Expanded(child: _buildContainer('Orders Delivered', '20')),
           ],
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
         // Placeholder for Pie Chart
-        Container(
+        SizedBox(
           height: 200,
           width: MediaQuery.of(context).size.width * 0.8,
-          child: Card(
+          child: const Card(
             child: Center(
               child: Text('Pie Chart Placeholder'),
             ),
           ),
         ),
-        SizedBox(height: 20),
+        const SizedBox(height: 20),
         // Placeholder for Bar Graph
-        Container(
+        SizedBox(
           height: 200,
           width: MediaQuery.of(context).size.width * 0.8,
-          child: Card(
+          child: const Card(
             child: Center(
               child: Text('Bar Graph Placeholder'),
             ),
@@ -199,10 +205,10 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildContainer(String title, String value) {
     return Container(
-      padding: EdgeInsets.all(10),
-      margin: EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.all(10),
+      margin: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: Color.fromARGB(255, 54, 99, 56),
+        color: const Color.fromARGB(255, 54, 99, 56),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -210,12 +216,12 @@ class HomeScreen extends StatelessWidget {
         children: [
           Text(
             title,
-            style: TextStyle(color: Colors.white),
+            style: const TextStyle(color: Colors.white),
           ),
-          SizedBox(height: 5),
+          const SizedBox(height: 5),
           Text(
             value,
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ],
       ),

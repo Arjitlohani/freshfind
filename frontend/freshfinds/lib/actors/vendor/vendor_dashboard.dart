@@ -3,17 +3,21 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:freshfinds/actors/vendor/productmmt.dart';
 
 void main() {
-  runApp(VendorDashboard());
+  runApp(const VendorDashboard());
 }
 
 class VendorDashboard extends StatelessWidget {
+  const VendorDashboard({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return VendorDashboardScreen();
+    return const VendorDashboardScreen();
   }
 }
 
 class VendorDashboardScreen extends StatefulWidget {
+  const VendorDashboardScreen({super.key});
+
   @override
   _VendorDashboardScreenState createState() => _VendorDashboardScreenState();
 }
@@ -25,14 +29,14 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Vendor Dashboard',
           style: TextStyle(color: Colors.white),
         ),
-        backgroundColor: Color.fromARGB(255, 54, 99, 56),
+        backgroundColor: const Color.fromARGB(255, 54, 99, 56),
         actions: [
           IconButton(
-            icon: Icon(
+            icon: const Icon(
               Icons.logout,
               color: Colors.white,
             ),
@@ -53,7 +57,7 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
   Widget _buildBody(int index) {
     switch (index) {
       case 0:
-        return VendorHomeScreen();
+        return const VendorHomeScreen();
       case 1:
         return ProductManagementScreen(); // Placeholder for product management
       case 2:
@@ -77,7 +81,7 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
 class VendorDrawer extends StatelessWidget {
   final Function(int) onTap;
 
-  const VendorDrawer({required this.onTap});
+  const VendorDrawer({super.key, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +89,7 @@ class VendorDrawer extends StatelessWidget {
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[
-          DrawerHeader(
+          const DrawerHeader(
             decoration: BoxDecoration(
               color: Color.fromARGB(255, 54, 99, 56),
             ),
@@ -98,19 +102,19 @@ class VendorDrawer extends StatelessWidget {
             ),
           ),
           ListTile(
-            title: Text('Home'),
+            title: const Text('Home'),
             onTap: () => onTap(0),
           ),
           ListTile(
-            title: Text('Product Management'),
+            title: const Text('Product Management'),
             onTap: () => onTap(1),
           ),
           ListTile(
-            title: Text('Order Management'),
+            title: const Text('Order Management'),
             onTap: () => onTap(2),
           ),
           ListTile(
-            title: Text('User Management'),
+            title: const Text('User Management'),
             onTap: () => onTap(3),
           ),
         ],
@@ -120,6 +124,8 @@ class VendorDrawer extends StatelessWidget {
 }
 
 class VendorHomeScreen extends StatelessWidget {
+  const VendorHomeScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -134,7 +140,7 @@ class VendorHomeScreen extends StatelessWidget {
               Expanded(child: _buildContainer('Active Products', '50')),
             ],
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -142,9 +148,9 @@ class VendorHomeScreen extends StatelessWidget {
               Expanded(child: _buildContainer('Completed Orders', '20')),
             ],
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           // Pie Chart for Sales
-          Container(
+          SizedBox(
             height: 200,
             width: MediaQuery.of(context).size.width * 0.8,
             child: Card(
@@ -180,7 +186,7 @@ class VendorHomeScreen extends StatelessWidget {
               ),
             ),
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           // Bar Graph for Income
           // Container(
           //   height: 200,
@@ -267,10 +273,10 @@ class VendorHomeScreen extends StatelessWidget {
 
   Widget _buildContainer(String title, String value) {
     return Container(
-      padding: EdgeInsets.all(10),
-      margin: EdgeInsets.symmetric(horizontal: 10),
+      padding: const EdgeInsets.all(10),
+      margin: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: Color.fromARGB(255, 54, 99, 56),
+        color: const Color.fromARGB(255, 54, 99, 56),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -278,12 +284,13 @@ class VendorHomeScreen extends StatelessWidget {
         children: [
           Text(
             title,
-            style: TextStyle(color: Colors.white),
+            style: const TextStyle(color: Colors.white),
           ),
-          SizedBox(height: 5),
+          const SizedBox(height: 5),
           Text(
             value,
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ],
       ),
