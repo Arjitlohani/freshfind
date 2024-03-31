@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import '../api/api.dart';
+
 class LoginPage extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -9,7 +11,7 @@ class LoginPage extends StatelessWidget {
   LoginPage({super.key});
 
   Future<void> _login(BuildContext context) async {
-    const String url = 'http://192.168.1.113:3000/login';
+    const String url = 'http://$ipAddress:$port/login'; // Construct the URL
     final Map<String, String> headers = {'Content-Type': 'application/json'};
     final Map<String, String> body = {
       'email': emailController.text,
@@ -58,7 +60,8 @@ class LoginPage extends StatelessWidget {
       // Handle exceptions
       print('Error during login: $e');
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Error during login. Please try again later.')),
+        const SnackBar(
+            content: Text('Error during login. Please try again later.')),
       );
     }
   }

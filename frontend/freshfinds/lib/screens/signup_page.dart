@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshfinds/api/api.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'login_page.dart';
@@ -13,7 +14,7 @@ class SignupPage extends StatelessWidget {
   SignupPage({super.key});
 
   Future<void> _signup(BuildContext context) async {
-    const String url = 'http://192.168.1.113:3000/signup';
+    const String url = 'http://$ipAddress:$port/signup';
     final Map<String, String> headers = {'Content-Type': 'application/json'};
     final Map<String, String> body = {
       'username': usernameController.text,

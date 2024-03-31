@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshfinds/Api/api.dart';
 import 'package:http/http.dart' as http;
 
 import 'dart:convert';
@@ -110,7 +111,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
             const SizedBox(height: 20),
             Container(
               margin: const EdgeInsets.all(16.0),
-              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey),
                 borderRadius: BorderRadius.circular(8.0),
@@ -231,8 +233,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     String usernameError = await _validateUsername(_usernameController.text);
     String emailError = _validateEmail(_emailController.text);
     String passwordError = _validatePassword(_passwordController.text);
-    String phoneNumberError =
-        _validatePhoneNumber(_phoneNumberController.text);
+    String phoneNumberError = _validatePhoneNumber(_phoneNumberController.text);
     String addressError = _validateAddress(_addressController.text);
     String roleError = _validateRole(_roleController.text);
 
@@ -266,7 +267,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     // All input fields are valid, proceed with adding user
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.113:3000/users'),
+        Uri.parse('http://$ipAddress:$port/users'),
         headers: <String, String>{
           'Content-Type': 'application/json; charset=UTF-8',
         },
@@ -352,7 +353,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   Future<bool> _checkUsernameUnique(String username) async {
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.1.113:3000/users/search/name?name=$username'),
+        Uri.parse('http://$ipAddress:$port/users/search/name?name=$username'),
       );
 
       if (response.statusCode == 200) {
@@ -385,7 +386,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       }
 
       final response = await http.get(
-        Uri.parse('http://192.168.1.113:3000/users/${_userIdController.text}'),
+        Uri.parse('http://$ipAddress:$port/users/${_userIdController.text}'),
       );
 
       if (response.statusCode == 200) {
@@ -412,7 +413,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     });
     try {
       final response = await http.get(
-        Uri.parse('http://192.168.1.113:3000/users?limit=5&offset=$_offset'),
+        Uri.parse('http://$ipAddress:$port/users?limit=5&offset=$_offset'),
       );
 
       if (response.statusCode == 200) {
@@ -498,7 +499,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   if (editRoleController.text.isNotEmpty) {
                     final response = await http.put(
                       Uri.parse(
-                          'http://192.168.1.113:3000/users/${user['user_id']}'),
+                          'http://$ipAddress:$port/users/${user['user_id']}'),
                       headers: <String, String>{
                         'Content-Type': 'application/json; charset=UTF-8',
                       },
@@ -556,7 +557,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                 try {
                   final response = await http.delete(
                     Uri.parse(
-                        'http://192.168.1.113:3000/users/${user['user_id']}'),
+                        'http://$ipAddress:$port/users/${user['user_id']}'),
                   );
 
                   if (response.statusCode == 200) {

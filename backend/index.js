@@ -3,7 +3,11 @@ const bodyParser = require('body-parser');
 const mysql = require('mysql');
 
 const app = express();
+const multer = require('multer'); // For handling file uploads
+const upload = multer({ dest: 'D:/GITHUB/freshfinds/frontend/freshfinds/assets' });
+
 const port = 3000;
+
 
 app.use(bodyParser.json());
 
@@ -179,7 +183,8 @@ app.get('/products', (req, res) => {
     });
 });
 
-app.post('/products', (req, res) => {
+// Endpoint to add a new product with image
+app.post('/products', upload.single('image'), (req, res) => {
     const { name, description, price, quantity, vendor_id, category_id } = req.body;
 
     // Check if all required fields are provided
@@ -187,17 +192,37 @@ app.post('/products', (req, res) => {
         return res.status(400).json({ message: 'All fields are required' });
     }
 
-    // Insert the new product into the database
-    const query = 'INSERT INTO Products (name, description, price, quantity, vendor_id, category_id) VALUES (?, ?, ?, ?, ?, ?)';
-    connection.query(query, [name, description, price, quantity, vendor_id, category_id], (error, results) => {
-        if (error) {
-            console.error('Error adding product:', error);
+    // Check if image file is provided
+    if (!req.file) {
+        return res.status(400).json({ message: 'Image file is required' });
+    }
+
+    const image_url = req.file.path; // Get the path of the uploaded image
+
+    // Insert the new product into the products table
+    const productQuery = 'INSERT INTO Products (name, description, price, quantity, vendor_id, category_id) VALUES (?, ?, ?, ?, ?, ?)';
+    connection.query(productQuery, [name, description, price, quantity, vendor_id, category_id], (productError, productResults) => {
+        if (productError) {
+            console.error('Error adding product:', productError);
             return res.status(500).json({ message: 'Internal server error' });
         }
 
-        return res.status(201).json({ message: 'Product added successfully' });
+        // Get the product ID of the inserted product
+        const product_id = productResults.insertId;
+
+        // Insert the image details into the images table
+        const imageQuery = 'INSERT INTO images (product_id, image_url) VALUES (?, ?)';
+        connection.query(imageQuery, [product_id, image_url], (imageError) => {
+            if (imageError) {
+                console.error('Error adding image:', imageError);
+                return res.status(500).json({ message: 'Internal server error' });
+            }
+
+            return res.status(201).json({ message: 'Product added successfully' });
+        });
     });
 });
+
 
 
 // Endpoint to search for a product by ID
