@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:freshfinds/Api/api.dart';
+import 'package:freshfinds/api/api.dart';
 import 'package:http/http.dart' as http;
 
 import 'dart:convert';
@@ -300,10 +300,10 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
     bool isUsernameUnique = await _checkUsernameUnique(value);
 
     if (!isUsernameUnique) {
-      return 'Username is not unique. Please choose a different one.';
+      return 'Username already exists. Please choose a different one.';
     }
 
-    return 'Correct'; // Return null if the username is valid
+    return 'Correct'; // Return 'Correct' if the username is unique
   }
 
   String _validateEmail(String value) {

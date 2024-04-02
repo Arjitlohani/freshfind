@@ -54,8 +54,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
       }),
       body: _buildBody(_currentIndex),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor:
-            const Color.fromARGB(255, 54, 99, 56), // Set background color to green
+        backgroundColor: const Color.fromARGB(
+            255, 54, 99, 56), // Set background color to green
         currentIndex: _currentIndex,
         onTap: (index) {
           setState(() {
@@ -221,7 +221,8 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(height: 5),
           Text(
             value,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.bold),
           ),
         ],
       ),

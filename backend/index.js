@@ -58,6 +58,7 @@ app.post('/signup', (req, res) => {
     if (!username || !email || !password || !phone_number || !address) {
         return res.status(400).json({ message: 'All fields are required' });
     }
+    
 
     // Check if the email is already registered
     connection.query('SELECT * FROM user WHERE email = ?', [email], (error, results) => {
@@ -70,6 +71,7 @@ app.post('/signup', (req, res) => {
         if (results.length > 0) {
             return res.status(409).json({ message: 'Email is already registered' });
         }
+        
 
         // Insert the new user into the database
         const query = 'INSERT INTO user (user_name, email, password, phone_number, address) VALUES (?, ?, ?, ?, ?)';
@@ -85,19 +87,7 @@ app.post('/signup', (req, res) => {
     });
 });
 
-//Endpoint to get all users
-// app.get('/users', (req, res) => {
-//     // Query to fetch all users
-//     connection.query('SELECT * FROM user', (error, results) => {
-//         if (error) {
-//             console.error('Error executing query:', error);
-//             return res.status(500).json({ message: 'Internal server error' });
-//         }
 
-//         // Return the list of users
-//         return res.status(200).json({ users: results });
-//     });
-// });
 
 app.post('/users', (req, res) => {
     const { username, email, password, phone_number, address, role } = req.body;
@@ -135,7 +125,7 @@ app.get('/users/:id', (req, res) => {
     const userId = req.params.id;
 
     // Query to fetch user by ID
-    const query = 'SELECT * FROM user WHERE user_id = ?'; // Assuming the primary key column is 'user_id'
+    const query = 'SELECT * FROM user WHERE user_id = ?'; // primary key column is 'user_id'
     connection.query(query, [userId], (error, results) => {
         if (error) {
             console.error('Error executing query:', error);
@@ -167,6 +157,27 @@ app.get('/users', (req, res) => {
     });
 });
 
+// Endpoint to check if a username already exists
+app.get('/users/search/name', (req, res) => {
+    const username = req.query.name;
+
+    // Query to check if the username exists
+    const query = 'SELECT * FROM user WHERE user_name = ?';
+    connection.query(query, [username], (error, results) => {
+        if (error) {
+            console.error('Error executing query:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+
+        // If a user with the provided username exists, return appropriate response
+        if (results.length > 0) {
+            return res.status(200).json({ exists: true });
+        } else {
+            return res.status(200).json({ exists: false });
+        }
+    });
+}); 
+
 
 
 
@@ -183,8 +194,7 @@ app.get('/products', (req, res) => {
     });
 });
 
-// Endpoint to add a new product with image
-app.post('/products', upload.single('image'), (req, res) => {
+app.post('/products', (req, res) => {
     const { name, description, price, quantity, vendor_id, category_id } = req.body;
 
     // Check if all required fields are provided
@@ -192,34 +202,15 @@ app.post('/products', upload.single('image'), (req, res) => {
         return res.status(400).json({ message: 'All fields are required' });
     }
 
-    // Check if image file is provided
-    if (!req.file) {
-        return res.status(400).json({ message: 'Image file is required' });
-    }
-
-    const image_url = req.file.path; // Get the path of the uploaded image
-
-    // Insert the new product into the products table
-    const productQuery = 'INSERT INTO Products (name, description, price, quantity, vendor_id, category_id) VALUES (?, ?, ?, ?, ?, ?)';
-    connection.query(productQuery, [name, description, price, quantity, vendor_id, category_id], (productError, productResults) => {
-        if (productError) {
-            console.error('Error adding product:', productError);
+    // Insert the new product into the database
+    const query = 'INSERT INTO Products (name, description, price, quantity, vendor_id, category_id) VALUES (?, ?, ?, ?, ?, ?)';
+    connection.query(query, [name, description, price, quantity, vendor_id, category_id], (error, results) => {
+        if (error) {
+            console.error('Error adding product:', error);
             return res.status(500).json({ message: 'Internal server error' });
         }
 
-        // Get the product ID of the inserted product
-        const product_id = productResults.insertId;
-
-        // Insert the image details into the images table
-        const imageQuery = 'INSERT INTO images (product_id, image_url) VALUES (?, ?)';
-        connection.query(imageQuery, [product_id, image_url], (imageError) => {
-            if (imageError) {
-                console.error('Error adding image:', imageError);
-                return res.status(500).json({ message: 'Internal server error' });
-            }
-
-            return res.status(201).json({ message: 'Product added successfully' });
-        });
+        return res.status(201).json({ message: 'Product added successfully' });
     });
 });
 

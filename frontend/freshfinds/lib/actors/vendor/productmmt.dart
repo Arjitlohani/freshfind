@@ -1,10 +1,8 @@
+import 'package:flutter/material.dart';
+import 'package:freshfinds/api/api.dart';
+import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
-
-import 'package:flutter/material.dart';
-import 'package:freshfinds/Api/api.dart';
-import 'package:http/http.dart' as http;
-import 'package:file_picker/file_picker.dart';
 
 class ProductManagementScreen extends StatefulWidget {
   @override
@@ -18,46 +16,35 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
   TextEditingController _priceController = TextEditingController();
   TextEditingController _quantityController = TextEditingController();
   TextEditingController _vendorIdController = TextEditingController();
+  TextEditingController _productIdController = TextEditingController();
   String? _selectedCategory;
   String? category_id;
 
   List<Map<String, dynamic>> _category = [];
-  late File _image;
 
   @override
   void initState() {
     super.initState();
-    _image = File(''); // Initialize _image with a default value
     _fetchCategories();
   }
 
   Future<void> _fetchCategories() async {
-    // Simulated data fetching
-    await Future.delayed(Duration(seconds: 1));
-    setState(() {
-      _category = [
-        {"name": "Fruits"},
-        {"name": "Vegetables"},
-        {"name": "Beverages"},
-        {"name": "Dairy"},
-      ];
-    });
-  }
+    final url = Uri.parse('http://$ipAddress:$port/category');
 
-  // Modify _uploadImage function to correctly update _image variable
-  Future<void> _uploadImage() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.image,
-      allowMultiple: false,
-    );
+    try {
+      final response = await http.get(url);
 
-    if (result != null) {
-      setState(() {
-        _image = File(result.files.single.path!);
-      });
-    } else {
-      // User canceled the picker
-      print('User canceled image selection.');
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        setState(() {
+          _category = List<Map<String, dynamic>>.from(responseData['category']);
+          print(_category);
+        });
+      } else {
+        throw Exception('Failed to load categories: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching categories: $e');
     }
   }
 
@@ -102,36 +89,51 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                 onChanged: (newValue) {
                   setState(() {
                     _selectedCategory = newValue;
-                    _updateInputFieldValue(newValue);
+                    _updateInputFieldValue(
+                        newValue); // Update the category ID value
                   });
                 },
-                items: _category.map<DropdownMenuItem<String>>((category) {
-                  return DropdownMenuItem<String>(
-                    value: category['name'],
-                    child: Text(category['name']),
-                  );
-                }).toList(),
+                items: [
+                  DropdownMenuItem(
+                    value: 'Fruits',
+                    child: Text('Fruits'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'Vegetables',
+                    child: Text('Vegetables'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'Beverages',
+                    child: Text('Beverages'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'Dairy',
+                    child: Text('Dairy'),
+                  ),
+                ],
                 decoration: InputDecoration(labelText: 'Select Category'),
               ),
               SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () => _uploadImage(),
-                child: Text('Upload Image'),
+              TextField(
+                controller: TextEditingController(text: category_id),
+                enabled: false,
+                decoration: InputDecoration(labelText: 'Category ID'),
               ),
-              SizedBox(height: 20),
-              if (_image != null) // Conditionally check if _image is not null
-                Image.file(
-                  _image,
-                  height: 250,
-                  width: 50,
-                  fit: BoxFit.cover,
-                )
-              else
-                Container(), // Placeholder container if _image is null
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => _addProduct(context),
                 child: Text('Add Product'),
+              ),
+              SizedBox(height: 20),
+              TextField(
+                controller: _productIdController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: 'Search Product by ID'),
+              ),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => _searchProductById(context),
+                child: Text('Search Product'),
               ),
             ],
           ),
@@ -147,8 +149,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
         _priceController.text.isEmpty ||
         _quantityController.text.isEmpty ||
         _vendorIdController.text.isEmpty ||
-        _selectedCategory == null ||
-        _image == null) {
+        _selectedCategory == null) {
       _showErrorDialog(context, 'All fields are required.');
       return;
     }
@@ -164,34 +165,23 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
     final category = _selectedCategory;
     final categoryId = _getCategoryId(category);
 
-    // Check if category ID is valid
-    if (categoryId == 0) {
-      _showErrorDialog(context, 'Please select a valid category.');
-      return;
-    }
-
-    // Create multipart request for image upload
+    // Constructing request body
     final url = Uri.parse('http://$ipAddress:$port/products');
-    final request = http.MultipartRequest('POST', url);
-
-    // Add fields to multipart request
-    request.fields['name'] = name;
-    request.fields['description'] = description;
-    request.fields['price'] = price.toString();
-    request.fields['quantity'] = quantity.toString();
-    request.fields['vendor_id'] = vendorId.toString();
-    request.fields['category_id'] = categoryId.toString();
-
-    // Add image file to multipart request
-    final imageFile = await http.MultipartFile.fromPath('image', _image.path);
-    request.files.add(imageFile);
+    final headers = <String, String>{'Content-Type': 'application/json'};
+    final body = jsonEncode({
+      'name': name,
+      'description': description,
+      'price': price,
+      'quantity': quantity,
+      'vendor_id': vendorId,
+      'category_id': categoryId,
+    });
 
     try {
-      // Send POST request with multipart data to add product
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
+      // Sending POST request to add product
+      final response = await http.post(url, headers: headers, body: body);
 
-      // Check response status code
+      // Checking response status code
       if (response.statusCode == 201) {
         // Show success dialog
         _showSuccessDialog(context);
@@ -209,6 +199,43 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
       // Show error dialog if request failed
       _showErrorDialog(context, 'Failed to add product. Please try again.');
     }
+  }
+
+  void _searchProductById(BuildContext context) async {
+    final productId = int.parse(_productIdController.text);
+    final url = Uri.parse('http://$ipAddress:$port/products/$productId');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final productData = jsonDecode(response.body);
+        _showProductDetailsDialog(context, productData);
+      } else {
+        _showErrorDialog(context, 'Product not found.');
+      }
+    } catch (e) {
+      _showErrorDialog(context, 'Failed to search product. Please try again.');
+    }
+  }
+
+  void _showProductDetailsDialog(BuildContext context, dynamic productData) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Product Details'),
+          content: Text(
+              'Product ID: ${productData['product_id']}\nName: ${productData['name']}\nDescription: ${productData['description']}\nPrice: ${productData['price']}\nQuantity: ${productData['quantity']}\nVendor ID: ${productData['vendor_id']}'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _showSuccessDialog(BuildContext context) {
@@ -256,10 +283,10 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
     _priceController.clear();
     _quantityController.clear();
     _vendorIdController.clear();
+    _productIdController.clear();
     setState(() {
       _selectedCategory = null;
       category_id = '0';
-      _image = File('');
     });
   }
 
@@ -295,7 +322,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
       case 'Dairy':
         return 4;
       default:
-        return 0; // Or any default category ID
+        return 0; //  default category ID
     }
   }
 }
