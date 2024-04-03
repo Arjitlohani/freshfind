@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:freshfinds/api/api.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -21,6 +23,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
   String? category_id;
 
   List<Map<String, dynamic>> _category = [];
+  File? _image; // Define the _image variable
 
   @override
   void initState() {
@@ -121,6 +124,18 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
               ),
               SizedBox(height: 20),
               ElevatedButton(
+                onPressed: _getImage,
+                child: Text('Select Image'),
+              ),
+              SizedBox(height: 20),
+              _image != null
+                  ? Image.file(
+                      _image!,
+                      height: 200,
+                    )
+                  : Container(),
+              SizedBox(height: 20),
+              ElevatedButton(
                 onPressed: () => _addProduct(context),
                 child: Text('Add Product'),
               ),
@@ -142,61 +157,91 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
     );
   }
 
+  Future<String?> _uploadImage(File imageFile) async {
+    final url = Uri.parse('http://$ipAddress:$port/upload');
+    final request = http.MultipartRequest('POST', url);
+    request.files
+        .add(await http.MultipartFile.fromPath('image', imageFile.path));
+
+    final response = await request.send();
+
+    if (response.statusCode == 200) {
+      final imageUrl = await response.stream.bytesToString();
+      return imageUrl;
+    } else {
+      print('Failed to upload image');
+      return null;
+    }
+  }
+
+  Future<void> _getImage() async {
+    final picker = ImagePicker();
+    final pickedImage = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedImage != null) {
+      setState(() {
+        _image = File(pickedImage.path);
+      });
+    }
+  }
+
   void _addProduct(BuildContext context) async {
-    // Validate input fields
+    // Validate input fields and image selection
     if (_nameController.text.isEmpty ||
         _descriptionController.text.isEmpty ||
         _priceController.text.isEmpty ||
         _quantityController.text.isEmpty ||
         _vendorIdController.text.isEmpty ||
-        _selectedCategory == null) {
+        _selectedCategory == null ||
+        _image == null) {
       _showErrorDialog(context, 'All fields are required.');
       return;
     }
 
-    // Extracting data from text controllers
-    final name = _nameController.text;
-    final description = _descriptionController.text;
-    final price = double.parse(_priceController.text);
-    final quantity = int.parse(_quantityController.text);
-    final vendorId = int.parse(_vendorIdController.text);
-
-    // Extracting category and getting category ID
-    final category = _selectedCategory;
-    final categoryId = _getCategoryId(category);
-
-    // Constructing request body
-    final url = Uri.parse('http://$ipAddress:$port/products');
-    final headers = <String, String>{'Content-Type': 'application/json'};
-    final body = jsonEncode({
-      'name': name,
-      'description': description,
-      'price': price,
-      'quantity': quantity,
-      'vendor_id': vendorId,
-      'category_id': categoryId,
-    });
-
     try {
-      // Sending POST request to add product
-      final response = await http.post(url, headers: headers, body: body);
+      // Upload image
+      final imageUrl = await _uploadImage(_image!);
 
-      // Checking response status code
-      if (response.statusCode == 201) {
-        // Show success dialog
-        _showSuccessDialog(context);
-      } else if (response.statusCode == 400) {
-        // Bad request - Display error message from server
-        final responseData = jsonDecode(response.body);
-        final errorMessage =
-            responseData['message'] ?? 'Failed to add product.';
-        _showErrorDialog(context, errorMessage);
+      if (imageUrl != null) {
+        // Construct request body
+        final name = _nameController.text;
+        final description = _descriptionController.text;
+        final price = double.parse(_priceController.text);
+        final quantity = int.parse(_quantityController.text);
+        final vendorId = int.parse(_vendorIdController.text);
+        final category = _selectedCategory;
+        final categoryId = _getCategoryId(category);
+
+        final url = Uri.parse('http://$ipAddress:$port/products');
+        final headers = <String, String>{'Content-Type': 'application/json'};
+        final body = jsonEncode({
+          'name': name,
+          'description': description,
+          'price': price,
+          'quantity': quantity,
+          'vendor_id': vendorId,
+          'category_id': categoryId,
+          'image_url': imageUrl,
+        });
+
+        // Send POST request to add product
+        final response = await http.post(url, headers: headers, body: body);
+
+        // Check response status code
+        if (response.statusCode == 201) {
+          _showSuccessDialog(context);
+        } else if (response.statusCode == 400) {
+          final responseData = jsonDecode(response.body);
+          final errorMessage =
+              responseData['message'] ?? 'Failed to add product.';
+          _showErrorDialog(context, errorMessage);
+        } else {
+          _showErrorDialog(context, 'Failed to add product. Please try again.');
+        }
       } else {
-        // Show generic error message if adding product failed
-        _showErrorDialog(context, 'Failed to add product. Please try again.');
+        _showErrorDialog(context, 'Failed to upload image. Please try again.');
       }
     } catch (e) {
-      // Show error dialog if request failed
       _showErrorDialog(context, 'Failed to add product. Please try again.');
     }
   }

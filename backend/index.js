@@ -1,13 +1,16 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mysql = require('mysql');
-
+const cors = require('cors'); // Import the CORS middleware
 const app = express();
 const multer = require('multer'); // For handling file uploads
-const upload = multer({ dest: 'D:/GITHUB/freshfinds/frontend/freshfinds/assets' });
+const fs = require('fs');
 
 const port = 3000;
 
+app.use(cors({
+    origin: 'http://localhost:62053' 
+  }));
 
 app.use(bodyParser.json());
 
@@ -195,24 +198,70 @@ app.get('/products', (req, res) => {
 });
 
 app.post('/products', (req, res) => {
-    const { name, description, price, quantity, vendor_id, category_id } = req.body;
+    const { name, description, price, quantity, vendor_id, category_id, image_url } = req.body;
 
     // Check if all required fields are provided
-    if (!name || !description || !price || !quantity || !vendor_id || !category_id) {
+    if (!name || !description || !price || !quantity || !vendor_id || !category_id || !image_url) {
         return res.status(400).json({ message: 'All fields are required' });
     }
 
-    // Insert the new product into the database
-    const query = 'INSERT INTO Products (name, description, price, quantity, vendor_id, category_id) VALUES (?, ?, ?, ?, ?, ?)';
-    connection.query(query, [name, description, price, quantity, vendor_id, category_id], (error, results) => {
-        if (error) {
-            console.error('Error adding product:', error);
+    // Insert the new product into the product table
+    const productQuery = 'INSERT INTO Products (name, description, price, quantity, vendor_id, category_id) VALUES (?, ?, ?, ?, ?, ?)';
+    connection.query(productQuery, [name, description, price, quantity, vendor_id, category_id], (productError, productResults) => {
+        if (productError) {
+            console.error('Error adding product:', productError);
             return res.status(500).json({ message: 'Internal server error' });
         }
 
-        return res.status(201).json({ message: 'Product added successfully' });
+        // Insert the image URL into the image table
+        const imageQuery = 'INSERT INTO Images (product_id, image_url) VALUES (?, ?)';
+        const productId = productResults.insertId; // Assuming your product table has an auto-increment primary key
+        connection.query(imageQuery, [productId, image_url], (imageError) => {
+            if (imageError) {
+                console.error('Error adding image:', imageError);
+                return res.status(500).json({ message: 'Internal server error' });
+            }
+
+            return res.status(201).json({ message: 'Product added successfully' });
+        });
     });
 });
+
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
+});
+
+// Middleware for file upload
+const upload = multer({
+    dest: 'uploads/' // Specify upload directory
+});
+
+// Process the uploaded file
+app.post('/upload', upload.single('image'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+    }
+    
+    // Access the uploaded file details
+    const fileName = req.file.filename;
+    const originalName = req.file.originalname;
+    const mimeType = req.file.mimetype;
+    const size = req.file.size;
+
+    // Perform further processing here, such as saving the file to a directory or database
+    // Example: Move the uploaded file to a specific directory
+    const targetPath = `uploads/${fileName}`;
+    fs.rename(req.file.path, targetPath, (err) => {
+        if (err) {
+            console.error('Error moving file:', err);
+            return res.status(500).json({ message: 'Failed to process uploaded file' });
+        }
+        console.log('File processed successfully');
+        res.status(200).json({ message: 'File uploaded and processed successfully' });
+    });
+});
+
 
 
 
