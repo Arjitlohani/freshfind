@@ -1,10 +1,11 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:freshfinds/api/api.dart';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart'; // Import http_parser.dart for MediaType
 import 'package:image_picker/image_picker.dart';
-
-import 'dart:convert';
-import 'dart:io';
 
 class ProductManagementScreen extends StatefulWidget {
   @override
@@ -13,6 +14,7 @@ class ProductManagementScreen extends StatefulWidget {
 }
 
 class _ProductManagementScreenState extends State<ProductManagementScreen> {
+  File? _imageFile; // Declare _imageFile as nullable File variable
   TextEditingController _nameController = TextEditingController();
   TextEditingController _descriptionController = TextEditingController();
   TextEditingController _priceController = TextEditingController();
@@ -23,12 +25,12 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
   String? category_id;
 
   List<Map<String, dynamic>> _category = [];
-  File? _image; // Define the _image variable
 
   @override
   void initState() {
     super.initState();
     _fetchCategories();
+    _imageFile = null; // Initialize image file to null
   }
 
   Future<void> _fetchCategories() async {
@@ -122,23 +124,19 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                 enabled: false,
                 decoration: InputDecoration(labelText: 'Category ID'),
               ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _getImage,
-                child: Text('Select Image'),
-              ),
-              SizedBox(height: 20),
-              _image != null
-                  ? Image.file(
-                      _image!,
-                      height: 200,
+              _imageFile == null
+                  ? ElevatedButton(
+                      onPressed: _selectImage,
+                      child: Text('Select Image'),
                     )
-                  : Container(),
+                  : Image.file(_imageFile!), // Show selected image
+
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => _addProduct(context),
                 child: Text('Add Product'),
               ),
+
               SizedBox(height: 20),
               TextField(
                 controller: _productIdController,
@@ -157,30 +155,13 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
     );
   }
 
-  Future<String?> _uploadImage(File imageFile) async {
-    final url = Uri.parse('http://$ipAddress:$port/upload');
-    final request = http.MultipartRequest('POST', url);
-    request.files
-        .add(await http.MultipartFile.fromPath('image', imageFile.path));
+  void _selectImage() async {
+    final pickedFile =
+        await ImagePicker().pickImage(source: ImageSource.gallery);
 
-    final response = await request.send();
-
-    if (response.statusCode == 200) {
-      final imageUrl = await response.stream.bytesToString();
-      return imageUrl;
-    } else {
-      print('Failed to upload image');
-      return null;
-    }
-  }
-
-  Future<void> _getImage() async {
-    final picker = ImagePicker();
-    final pickedImage = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedImage != null) {
+    if (pickedFile != null) {
       setState(() {
-        _image = File(pickedImage.path);
+        _imageFile = File(pickedFile.path);
       });
     }
   }
@@ -192,57 +173,75 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
         _priceController.text.isEmpty ||
         _quantityController.text.isEmpty ||
         _vendorIdController.text.isEmpty ||
-        _selectedCategory == null ||
-        _image == null) {
+        _selectedCategory == null) {
       _showErrorDialog(context, 'All fields are required.');
       return;
     }
 
     try {
-      // Upload image
-      final imageUrl = await _uploadImage(_image!);
+      final name = _nameController.text;
+      final description = _descriptionController.text;
+      final price = double.parse(_priceController.text);
+      final quantity = int.parse(_quantityController.text);
+      final vendorId = int.parse(_vendorIdController.text);
+      final category = _selectedCategory;
+      final categoryId = _getCategoryId(category);
 
-      if (imageUrl != null) {
-        // Construct request body
-        final name = _nameController.text;
-        final description = _descriptionController.text;
-        final price = double.parse(_priceController.text);
-        final quantity = int.parse(_quantityController.text);
-        final vendorId = int.parse(_vendorIdController.text);
-        final category = _selectedCategory;
-        final categoryId = _getCategoryId(category);
+      final url = Uri.parse('http://$ipAddress:$port/products');
+      final headers = <String, String>{'Content-Type': 'application/json'};
+      final body = jsonEncode({
+        'name': name,
+        'description': description,
+        'price': price,
+        'quantity': quantity,
+        'vendor_id': vendorId,
+        'category_id': categoryId,
+      });
 
-        final url = Uri.parse('http://$ipAddress:$port/products');
-        final headers = <String, String>{'Content-Type': 'application/json'};
-        final body = jsonEncode({
-          'name': name,
-          'description': description,
-          'price': price,
-          'quantity': quantity,
-          'vendor_id': vendorId,
-          'category_id': categoryId,
-          'image_url': imageUrl,
+      final response = await http.post(url, headers: headers, body: body);
+
+      if (response.statusCode == 201) {
+        // If product added successfully, upload the image
+        final productId = jsonDecode(response.body)['productId'].toString();
+        await _uploadImage(productId);
+        _showSuccessDialog(context);
+        // Clear the image field after product is added
+        setState(() {
+          _imageFile = null;
         });
-
-        // Send POST request to add product
-        final response = await http.post(url, headers: headers, body: body);
-
-        // Check response status code
-        if (response.statusCode == 201) {
-          _showSuccessDialog(context);
-        } else if (response.statusCode == 400) {
-          final responseData = jsonDecode(response.body);
-          final errorMessage =
-              responseData['message'] ?? 'Failed to add product.';
-          _showErrorDialog(context, errorMessage);
-        } else {
-          _showErrorDialog(context, 'Failed to add product. Please try again.');
-        }
+      } else if (response.statusCode == 400) {
+        final responseData = jsonDecode(response.body);
+        final errorMessage =
+            responseData['message'] ?? 'Failed to add product.';
+        _showErrorDialog(context, errorMessage);
       } else {
-        _showErrorDialog(context, 'Failed to upload image. Please try again.');
+        _showErrorDialog(context, 'Failed to add product. Please try again.');
       }
     } catch (e) {
       _showErrorDialog(context, 'Failed to add product. Please try again.');
+    }
+  }
+
+  Future<void> _uploadImage(String productId) async {
+    if (_imageFile == null) return;
+
+    try {
+      final url = Uri.parse('http://$ipAddress:$port/upload');
+      final request = http.MultipartRequest('POST', url);
+      request.fields['productId'] = productId;
+      request.files.add(await http.MultipartFile.fromPath(
+        'image',
+        _imageFile!.path,
+        contentType: MediaType('image', 'jpeg'),
+      ));
+      final response = await request.send();
+      if (response.statusCode == 200) {
+        print('Image uploaded successfully');
+      } else {
+        print('Failed to upload image');
+      }
+    } catch (e) {
+      print('Error uploading image: $e');
     }
   }
 
