@@ -25,6 +25,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
   String? category_id;
 
   List<Map<String, dynamic>> _category = [];
+  List<Map<String, dynamic>> _products = [];
 
   @override
   void initState() {
@@ -148,6 +149,53 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                 onPressed: () => _searchProductById(context),
                 child: Text('Search Product'),
               ),
+              SizedBox(height: 20),
+              Container(
+                width: MediaQuery.of(context).size.width,
+                height: 200,
+                margin: const EdgeInsets.all(16.0),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: DataTable(
+                    columns: [
+                      DataColumn(label: Text('Product ID')),
+                      DataColumn(label: Text('Name')),
+                      DataColumn(label: Text('Description')),
+                      DataColumn(label: Text('Price')),
+                      DataColumn(label: Text('Quantity')),
+                      DataColumn(label: Text('Vendor ID')),
+                      DataColumn(label: Text('Category ID')),
+                      DataColumn(label: Text('Edit')),
+                      DataColumn(label: Text('Delete')),
+                    ],
+                    rows: _products.map((product) {
+                      return DataRow(
+                        cells: [
+                          DataCell(Text('${product['product_id']}')),
+                          DataCell(Text('${product['name']}')),
+                          DataCell(Text('${product['description']}')),
+                          DataCell(Text('${product['price']}')),
+                          DataCell(Text('${product['quantity']}')),
+                          DataCell(Text('${product['vendor_id']}')),
+                          DataCell(Text('${product['category_id']}')),
+                          DataCell(
+                            ElevatedButton(
+                              onPressed: () => _editProduct(product),
+                              child: Text('Edit'),
+                            ),
+                          ),
+                          DataCell(
+                            ElevatedButton(
+                              onPressed: () => _deleteProduct(product),
+                              child: Text('Delete'),
+                            ),
+                          ),
+                        ],
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -254,7 +302,10 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
 
       if (response.statusCode == 200) {
         final productData = jsonDecode(response.body);
-        _showProductDetailsDialog(context, productData);
+        // Update the _products list with the searched product details
+        setState(() {
+          _products = [productData];
+        });
       } else {
         _showErrorDialog(context, 'Product not found.');
       }
@@ -263,24 +314,24 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
     }
   }
 
-  void _showProductDetailsDialog(BuildContext context, dynamic productData) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Product Details'),
-          content: Text(
-              'Product ID: ${productData['product_id']}\nName: ${productData['name']}\nDescription: ${productData['description']}\nPrice: ${productData['price']}\nQuantity: ${productData['quantity']}\nVendor ID: ${productData['vendor_id']}'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text('OK'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  // void _showProductDetailsDialog(BuildContext context, dynamic productData) {
+  //   showDialog(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return AlertDialog(
+  //         title: Text('Product Details'),
+  //         content: Text(
+  //             'Product ID: ${productData['product_id']}\nName: ${productData['name']}\nDescription: ${productData['description']}\nPrice: ${productData['price']}\nQuantity: ${productData['quantity']}\nVendor ID: ${productData['vendor_id']}'),
+  //         actions: <Widget>[
+  //           TextButton(
+  //             onPressed: () => Navigator.of(context).pop(),
+  //             child: Text('OK'),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
   void _showSuccessDialog(BuildContext context) {
     showDialog(
@@ -368,5 +419,16 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
       default:
         return 0; //  default category ID
     }
+  }
+
+  void _editProduct(Map<String, dynamic> product) {
+    // Implement edit functionality
+    // You can show a dialog with text fields pre-filled with product details
+    // and update the product based on the edited values.
+  }
+
+  void _deleteProduct(Map<String, dynamic> product) {
+    // Implement delete functionality
+    // You can show a confirmation dialog and delete the product if confirmed.
   }
 }

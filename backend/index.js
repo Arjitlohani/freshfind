@@ -261,6 +261,7 @@ app.get('/products/:id', (req, res) => {
             return res.status(404).json({ message: 'Product not found' });
         }
 
+        
         // Return the product
         return res.status(200).json(results[0]);
     });
