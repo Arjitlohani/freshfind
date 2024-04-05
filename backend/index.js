@@ -281,6 +281,30 @@ app.get('/products/:id', (req, res) => {
         return res.status(200).json(results[0]);
     });
 });
+// Endpoint to update a product by ID
+app.put('/products/:id', (req, res) => {
+    const productId = req.params.id;
+
+    // Extract updated product details from the request body
+    const { name, description, price, quantity, vendor_id, category_id } = req.body;
+
+    // Query to update product details in the database
+    const query = 'UPDATE Products SET name = ?, description = ?, price = ?, quantity = ?, vendor_id = ?, category_id = ? WHERE product_id = ?';
+    connection.query(query, [name, description, price, quantity, vendor_id, category_id, productId], (error, results) => {
+        if (error) {
+            console.error('Error updating product:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+
+        // Check if the product was updated successfully
+        if (results.affectedRows === 0) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+
+        // Product updated successfully
+        return res.status(200).json({ message: 'Product updated successfully' });
+    });
+});
 
 
 

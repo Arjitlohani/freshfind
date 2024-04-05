@@ -415,9 +415,124 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
   }
 
   void _editProduct(Map<String, dynamic> product) {
-    // Implement edit functionality
-    // You can show a dialog with text fields pre-filled with product details
-    // and update the product based on the edited values.
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Edit Product'),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: TextEditingController(text: product['name']),
+                  onChanged: (value) {
+                    product['name'] = value;
+                  },
+                  decoration: InputDecoration(labelText: 'Name'),
+                ),
+                TextField(
+                  controller:
+                      TextEditingController(text: product['description']),
+                  onChanged: (value) {
+                    product['description'] = value;
+                  },
+                  decoration: InputDecoration(labelText: 'Description'),
+                ),
+                TextField(
+                  controller:
+                      TextEditingController(text: product['price'].toString()),
+                  onChanged: (value) {
+                    product['price'] = double.parse(value);
+                  },
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(labelText: 'Price'),
+                ),
+                TextField(
+                  controller: TextEditingController(
+                      text: product['quantity'].toString()),
+                  onChanged: (value) {
+                    product['quantity'] = int.parse(value);
+                  },
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(labelText: 'Quantity'),
+                ),
+                TextField(
+                  controller: TextEditingController(
+                      text: product['vendor_id'].toString()),
+                  onChanged: (value) {
+                    product['vendor_id'] = int.parse(value);
+                  },
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(labelText: 'Vendor ID'),
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    // Perform the update operation here
+                    _updateProduct(product);
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Save'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _updateProduct(Map<String, dynamic> product) async {
+    try {
+      final url = Uri.parse(
+          'http://$ipAddress:$port/products/${product['product_id']}');
+      final headers = <String, String>{'Content-Type': 'application/json'};
+      final body = jsonEncode({
+        'name': product['name'],
+        'description': product['description'],
+        'price': product['price'],
+        'quantity': product['quantity'],
+        'vendor_id': product['vendor_id'],
+        'category_id': product['category_id'],
+      });
+
+      final response = await http.put(url, headers: headers, body: body);
+
+      if (response.statusCode == 200) {
+        // Product updated successfully
+        _showUpdateDialog(context, 'Product updated successfully.');
+      } else {
+        // Failed to update product
+        final responseData = jsonDecode(response.body);
+        final errorMessage =
+            responseData['message'] ?? 'Failed to update product.';
+        _showErrorDialog(context, errorMessage);
+      }
+    } catch (e) {
+      // Error occurred while updating product
+      _showErrorDialog(context, 'Failed to update product. Please try again.');
+    }
+  }
+
+  void _showUpdateDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Update'),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _deleteProduct(Map<String, dynamic> product) {
