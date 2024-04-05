@@ -2,24 +2,31 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mysql = require('mysql');
 const multer = require('multer');
-const cors = require('cors'); // Import the CORS middleware
+const cors = require('cors');
+const path = require('path'); 
 const app = express();
 const port = 3000;
 
 app.use(cors());
 app.use(bodyParser.json());
 
+// Specify the full path to the uploads directory
+const uploadsPath = path.join(__dirname, 'uploads');
+
+// Serve static files from the uploads directory
+app.use('/uploads', express.static(uploadsPath));
 // Define storage for uploaded files
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, 'uploads/') // Use the 'uploads' folder for storing uploaded files
+        cb(null, 'uploads/') // Use the 'uploads' folder for storing uploaded files
     },
     filename: function (req, file, cb) {
         // Ensure unique file names to prevent overwriting existing files
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, uniqueSuffix + '-' + file.originalname);
-      },
-  });
+    },
+});
   
   // Initialize multer with the storage configuration
   const upload = multer({ storage: storage });
@@ -191,9 +198,13 @@ app.get('/users/search/name', (req, res) => {
     });
 }); 
 
-// Endpoint to get all products
+// Endpoint to get all products with image URLs
 app.get('/products', (req, res) => {
-    const query = 'SELECT * FROM products';
+    const query = `
+        SELECT p.*, i.image_url
+        FROM Products p
+        LEFT JOIN images i ON p.product_id = i.product_id
+    `;
     connection.query(query, (error, results) => {
         if (error) {
             console.error('Error executing query:', error);
@@ -248,8 +259,13 @@ app.post('/upload', upload.single('image'), (req, res) => {
 app.get('/products/:id', (req, res) => {
     const productId = req.params.id;
 
-    // Query to fetch product by ID
-    const query = 'SELECT * FROM Products WHERE product_id = ?';
+    // Query to fetch product by ID along with image URL
+    const query = `
+        SELECT p.*, i.image_url
+        FROM Products p
+        LEFT JOIN images i ON p.product_id = i.product_id
+        WHERE p.product_id = ?
+    `;
     connection.query(query, [productId], (error, results) => {
         if (error) {
             console.error('Error searching for product:', error);
@@ -261,11 +277,11 @@ app.get('/products/:id', (req, res) => {
             return res.status(404).json({ message: 'Product not found' });
         }
 
-        
-        // Return the product
+        // Return the product along with the image URL
         return res.status(200).json(results[0]);
     });
 });
+
 
 
 app.use((err, req, res, next) => {

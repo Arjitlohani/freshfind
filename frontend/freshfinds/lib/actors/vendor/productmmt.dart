@@ -23,6 +23,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
   TextEditingController _productIdController = TextEditingController();
   String? _selectedCategory;
   String? category_id;
+  String? _imageUrl;
 
   List<Map<String, dynamic>> _category = [];
   List<Map<String, dynamic>> _products = [];
@@ -196,6 +197,11 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                   ),
                 ),
               ),
+              SizedBox(height: 20),
+// Display the image dynamically from the URL
+              _imageUrl == null
+                  ? Text('$_imageUrl')
+                  : Image.network('http://$ipAddress:$port/$_imageUrl'),
             ],
           ),
         ),
@@ -305,6 +311,12 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
         // Update the _products list with the searched product details
         setState(() {
           _products = [productData];
+          // Check if the product has an image URL
+          if (productData.containsKey('image_url')) {
+            _imageUrl = '${productData['image_url']}'; // Store the image URL
+          } else {
+            _imageUrl = null; // Reset _imageUrl if no image URL is found
+          }
         });
       } else {
         _showErrorDialog(context, 'Product not found.');
@@ -313,25 +325,6 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
       _showErrorDialog(context, 'Failed to search product. Please try again.');
     }
   }
-
-  // void _showProductDetailsDialog(BuildContext context, dynamic productData) {
-  //   showDialog(
-  //     context: context,
-  //     builder: (BuildContext context) {
-  //       return AlertDialog(
-  //         title: Text('Product Details'),
-  //         content: Text(
-  //             'Product ID: ${productData['product_id']}\nName: ${productData['name']}\nDescription: ${productData['description']}\nPrice: ${productData['price']}\nQuantity: ${productData['quantity']}\nVendor ID: ${productData['vendor_id']}'),
-  //         actions: <Widget>[
-  //           TextButton(
-  //             onPressed: () => Navigator.of(context).pop(),
-  //             child: Text('OK'),
-  //           ),
-  //         ],
-  //       );
-  //     },
-  //   );
-  // }
 
   void _showSuccessDialog(BuildContext context) {
     showDialog(
