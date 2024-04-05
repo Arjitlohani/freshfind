@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 class OrderManagementScreen extends StatelessWidget {
   final List<Order> orders;
 
-  const OrderManagementScreen({Key? key, required this.orders})
-      : super(key: key);
+  const OrderManagementScreen({super.key, required this.orders});
 
   List<Order> get filteredOrders =>
       orders.where((order) => !order.isCompleted).toList();
@@ -14,7 +13,7 @@ class OrderManagementScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Order Management'),
+        title: const Text('Order Management'),
       ),
       body: Column(
         children: [
@@ -36,7 +35,7 @@ class OrderManagementScreen extends StatelessWidget {
                   ),
                   trailing: ElevatedButton(
                     onPressed: () {},
-                    child: Text('Mark Completed'),
+                    child: const Text('Mark Completed'),
                   ),
                 );
               },

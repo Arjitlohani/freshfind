@@ -24,7 +24,7 @@ if (flutterVersionName == null) {
 
 android {
     namespace "com.example.freshfinds"
-    compileSdk flutter.compileSdkVersion
+    compileSdkVersion 33 
     ndkVersion flutter.ndkVersion
 
     compileOptions {
@@ -50,7 +50,7 @@ android {
     //     versionCode flutterVersionCode.toInteger()
     //     versionName flutterVersionName
     // }
-    compileSdkVersion 31
+   
 
     defaultConfig {
         applicationId "com.example.yourapp"
