@@ -306,6 +306,35 @@ app.put('/products/:id', (req, res) => {
     });
 });
 
+// Endpoint to delete a product by ID
+app.delete('/products/:id', (req, res) => {
+    const productId = req.params.id;
+
+    // Query to delete associated images from the Images table
+    const deleteImagesQuery = 'DELETE FROM Images WHERE product_id = ?';
+    connection.query(deleteImagesQuery, [productId], (error, deleteImagesResults) => {
+        if (error) {
+            console.error('Error deleting associated images:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+
+        // Query to delete product details from the Products table
+        const deleteProductQuery = 'DELETE FROM Products WHERE product_id = ?';
+        connection.query(deleteProductQuery, [productId], (error, deleteProductResults) => {
+            if (error) {
+                console.error('Error deleting product:', error);
+                return res.status(500).json({ message: 'Internal server error' });
+            }
+
+            if (deleteProductResults.affectedRows === 0) {
+                return res.status(404).json({ message: 'Product not found' });
+            }
+
+            return res.status(200).json({ message: 'Product deleted successfully' });
+        });
+    });
+});
+
 
 
 app.use((err, req, res, next) => {

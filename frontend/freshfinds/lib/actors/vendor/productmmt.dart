@@ -535,8 +535,51 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
     );
   }
 
-  void _deleteProduct(Map<String, dynamic> product) {
-    // Implement delete functionality
-    // You can show a confirmation dialog and delete the product if confirmed.
+  void _showDeleteDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Deleted'),
+          content: Text('Product and associated image deleted successfully.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _clearTextFields();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteProduct(Map<String, dynamic> product) async {
+    try {
+      final productId = product['product_id'];
+      final url = Uri.parse('http://$ipAddress:$port/products/$productId');
+
+      final response = await http.delete(url);
+
+      if (response.statusCode == 200) {
+        // Product and associated image deleted successfully
+
+        _showDeleteDialog(context);
+      } else if (response.statusCode == 404) {
+        // Product not found
+        _showErrorDialog(context, 'Product not found.');
+      } else {
+        // Failed to delete product
+        final responseData = jsonDecode(response.body);
+        final errorMessage =
+            responseData['message'] ?? 'Failed to delete product.';
+        _showErrorDialog(context, errorMessage);
+      }
+    } catch (e) {
+      // Error occurred while deleting product
+      _showErrorDialog(context, 'Failed to delete product. Please try again.');
+    }
   }
 }
