@@ -50,11 +50,12 @@ app.post('/login', (req, res) => {
 
     // Query to fetch user details along with role
     const query = `
-        SELECT user.*, role.role_id as role
-        FROM user 
-        JOIN role ON user.role = role.role_id 
-        WHERE email = ? AND password = ?
-    `;
+    SELECT user.*, role.role_id as role
+    FROM user 
+    JOIN role ON user.role = role.role_id 
+    WHERE email = ? AND password = ?
+`;
+
     connection.query(query, [email, password], (error, results, fields) => {
         if (error) {
             console.error('Error executing query:', error);
@@ -332,6 +333,33 @@ app.delete('/products/:id', (req, res) => {
 
             return res.status(200).json({ message: 'Product deleted successfully' });
         });
+    });
+});
+
+// Endpoint to fetch all vendors
+app.get('/vendors', (req, res) => {
+    const query = 'SELECT * FROM user WHERE role = 2 ORDER BY user_name ASC';
+    connection.query(query, (error, results) => {
+        if (error) {
+            console.error('Error fetching vendors:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+        return res.status(200).json({ vendors: results });
+    });
+});
+
+app.get('/products/vendor/:vendorId', (req, res) => {
+    const vendorId = req.params.vendorId;
+    const query = `
+        SELECT * FROM Products
+        WHERE vendor_id = ?;
+    `;
+    connection.query(query, [vendorId], (error, results) => {
+        if (error) {
+            console.error('Error fetching products by vendor:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+        return res.status(200).json(results);
     });
 });
 

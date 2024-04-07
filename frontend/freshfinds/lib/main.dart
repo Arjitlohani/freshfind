@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
         '/signup': (context) => SignupPage(),
         '/adminDashboard': (context) => const AdminDashboard(),
         '/vendorDashboard': (context) => const VendorDashboard(),
-        '/customerDashboard': (context) => const DashboardScreen(),
+        '/customerDashboard': (context) => DashboardScreen(),
         // '/driverDashboard': (context) => DriverDashboard(),
       },
     );

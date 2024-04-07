@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshfinds/api/api.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -63,7 +64,8 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
               TextField(
                 controller: _productIdController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Search Product by ID'),
+                decoration:
+                    const InputDecoration(labelText: 'Search Product by ID'),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -109,7 +111,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
 
   void _searchProductById(BuildContext context) async {
     final productId = int.parse(_productIdController.text);
-    final url = Uri.parse('http://192.168.1.113:3000/products/$productId');
+    final url = Uri.parse('http://$ipAddress:$port/products/$productId');
 
     try {
       final response = await http.get(url);

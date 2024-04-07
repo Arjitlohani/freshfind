@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
 import '../api/api.dart';
 
 class LoginPage extends StatelessWidget {
@@ -11,7 +10,7 @@ class LoginPage extends StatelessWidget {
   LoginPage({super.key});
 
   Future<void> _login(BuildContext context) async {
-    const String url = 'http://$ipAddress:$port/login'; // Construct the URL
+    const String url = 'http://$ipAddress:$port/login';
     final Map<String, String> headers = {'Content-Type': 'application/json'};
     final Map<String, String> body = {
       'email': emailController.text,
