@@ -348,11 +348,14 @@ app.get('/vendors', (req, res) => {
     });
 });
 
+const baseURL = 'http://192.168.1.113:3000';
 app.get('/products/vendor/:vendorId', (req, res) => {
     const vendorId = req.params.vendorId;
     const query = `
-        SELECT * FROM Products
-        WHERE vendor_id = ?;
+        SELECT p.*, CONCAT('${baseURL}/', i.image_url) AS image_url 
+        FROM Products p
+        LEFT JOIN images i ON p.product_id = i.product_id
+        WHERE p.vendor_id = ?;
     `;
     connection.query(query, [vendorId], (error, results) => {
         if (error) {
@@ -363,7 +366,49 @@ app.get('/products/vendor/:vendorId', (req, res) => {
     });
 });
 
-
+// Fetch User Data Endpoint
+app.get('/user/profile', (req, res) => {
+    // Assuming you have a 'users' table with columns: id, name, email
+    const query = 'SELECT name, email FROM users WHERE id = ?';
+    connection.query(query, [req.user.id], (error, results) => {
+      if (error) {
+        console.error('Error fetching user data:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+      }
+      if (results.length === 0) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      const userData = results[0];
+      return res.status(200).json(userData);
+    });
+  });
+  
+  // Update Profile Endpoint
+  app.put('/user/profile', (req, res) => {
+    const { name, email } = req.body;
+    if (!name || !email) {
+      return res.status(400).json({ message: 'Name and email are required' });
+    }
+    const query = 'UPDATE users SET name = ?, email = ? WHERE id = ?';
+    connection.query(query, [name, email, req.user.id], (error, results) => {
+      if (error) {
+        console.error('Error updating user profile:', error);
+        return res.status(500).json({ message: 'Internal server error' });
+      }
+      return res.status(200).json({ message: 'Profile updated successfully' });
+    });
+  });
+  
+  // Change Password Endpoint
+  app.put('/user/password', (req, res) => {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: 'Current password and new password are required' });
+    }
+    // Implement password change logic here
+    // You might hash passwords before storing them in the database for security
+    return res.status(200).json({ message: 'Password changed successfully' });
+  });
 
 app.use((err, req, res, next) => {
     console.error(err.stack);
