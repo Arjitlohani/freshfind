@@ -263,7 +263,7 @@ class ProductCard extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(0.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -274,7 +274,7 @@ class ProductCard extends StatelessWidget {
                     fontSize: 16,
                   ),
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: 2),
                 Text(
                   product['description'] ?? '',
                   maxLines: 2,
@@ -290,6 +290,27 @@ class ProductCard extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+          ),
+          // Centered Add to Cart button
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: ElevatedButton(
+                onPressed: () {
+                  // Add to cart functionality
+                  // You can implement the logic to add the product to the cart here
+                },
+                child: Text(
+                  'Add to Cart',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      Color.fromARGB(255, 23, 99, 37), // Button color
+                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                ),
+              ),
             ),
           ),
         ],
