@@ -89,6 +89,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                 controller: _vendorIdController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(labelText: 'Vendor ID'),
+                enabled: false, // User cannot edit vendor ID
               ),
               SizedBox(height: 20),
               DropdownButtonFormField<String>(
@@ -100,24 +101,13 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                         newValue); // Update the category ID value
                   });
                 },
-                items: [
-                  DropdownMenuItem(
-                    value: 'Fruits',
-                    child: Text('Fruits'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Vegetables',
-                    child: Text('Vegetables'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Beverages',
-                    child: Text('Beverages'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Dairy',
-                    child: Text('Dairy'),
-                  ),
-                ],
+                items: _category.map<DropdownMenuItem<String>>(
+                    (Map<String, dynamic> category) {
+                  return DropdownMenuItem<String>(
+                    value: category['name'],
+                    child: Text(category['name']),
+                  );
+                }).toList(),
                 decoration: InputDecoration(labelText: 'Select Category'),
               ),
               SizedBox(height: 20),
@@ -198,7 +188,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                 ),
               ),
               SizedBox(height: 20),
-// Display the image dynamically from the URL
+              // Display the image dynamically from the URL
               _imageUrl == null
                   ? Text('$_imageUrl')
                   : Image.network('http://$ipAddress:$port/$_imageUrl'),
@@ -226,7 +216,6 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
         _descriptionController.text.isEmpty ||
         _priceController.text.isEmpty ||
         _quantityController.text.isEmpty ||
-        _vendorIdController.text.isEmpty ||
         _selectedCategory == null) {
       _showErrorDialog(context, 'All fields are required.');
       return;
@@ -237,7 +226,6 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
       final description = _descriptionController.text;
       final price = double.parse(_priceController.text);
       final quantity = int.parse(_quantityController.text);
-      final vendorId = int.parse(_vendorIdController.text);
       final category = _selectedCategory;
       final categoryId = _getCategoryId(category);
 
@@ -248,7 +236,6 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
         'description': description,
         'price': price,
         'quantity': quantity,
-        'vendor_id': vendorId,
         'category_id': categoryId,
       });
 
@@ -370,7 +357,6 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
     _descriptionController.clear();
     _priceController.clear();
     _quantityController.clear();
-    _vendorIdController.clear();
     _productIdController.clear();
     setState(() {
       _selectedCategory = null;
@@ -457,15 +443,6 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(labelText: 'Quantity'),
                 ),
-                TextField(
-                  controller: TextEditingController(
-                      text: product['vendor_id'].toString()),
-                  onChanged: (value) {
-                    product['vendor_id'] = int.parse(value);
-                  },
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(labelText: 'Vendor ID'),
-                ),
                 SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
@@ -493,7 +470,6 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
         'description': product['description'],
         'price': product['price'],
         'quantity': product['quantity'],
-        'vendor_id': product['vendor_id'],
         'category_id': product['category_id'],
       });
 
