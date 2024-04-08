@@ -35,11 +35,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
         );
         break;
       case 1:
-        // Navigate to cart page
-        // Replace 'CartPage()' with your actual cart page widget
+        // Navigate to cart page with dummy product data
+        // You can replace this with the actual product data
+        Map<String, dynamic> dummyProduct = {
+          'name': 'Dummy Product',
+          'price': 10.0,
+          // Add other fields as needed
+        };
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => CartPage()),
+          MaterialPageRoute(
+              builder: (context) => CartPage(product: dummyProduct)),
         );
         break;
       case 2:

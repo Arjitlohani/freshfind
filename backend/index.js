@@ -282,14 +282,28 @@ app.get('/products/:id', (req, res) => {
         return res.status(200).json(results[0]);
     });
 });
-// Endpoint to update a product by ID
-app.put('/products/:id', (req, res) => {
+
+
+app.put('/products/:id', upload.single('image'), (req, res) => {
     const productId = req.params.id;
 
     // Extract updated product details from the request body
     const { name, description, price, quantity, vendor_id, category_id } = req.body;
 
-    // Query to update product details in the database
+    // If a new image was uploaded, update the image URL in the images table
+    if (req.file) {
+        const imageUrl = `baseURL/${req.file.filename}`;
+
+        const imageQuery = 'UPDATE Images SET image_url = ? WHERE product_id = ?';
+        connection.query(imageQuery, [imageUrl, productId], (imageError, imageResults) => {
+            if (imageError) {
+                console.error('Error updating image URL:', imageError);
+                return res.status(500).json({ message: 'Internal server error' });
+            }
+        });
+    }
+
+    // Query to update product details in the products table
     const query = 'UPDATE Products SET name = ?, description = ?, price = ?, quantity = ?, vendor_id = ?, category_id = ? WHERE product_id = ?';
     connection.query(query, [name, description, price, quantity, vendor_id, category_id, productId], (error, results) => {
         if (error) {
@@ -306,6 +320,11 @@ app.put('/products/:id', (req, res) => {
         return res.status(200).json({ message: 'Product updated successfully' });
     });
 });
+
+
+
+
+
 
 // Endpoint to delete a product by ID
 app.delete('/products/:id', (req, res) => {
