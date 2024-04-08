@@ -140,7 +140,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
               ),
 
               SizedBox(height: 20),
-              TextField(
+              _buildInputField(
                 controller: _productIdController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(labelText: 'Search Product by ID'),
