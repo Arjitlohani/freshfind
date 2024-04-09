@@ -90,8 +90,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
               MaterialPageRoute(
                   builder: (context) => CartPage(cartItems: _cartItems)),
             );
-          } else {
-            // Handle other navigation items
+          } else if (index == 0) {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => DashboardScreen()));
+          } else if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ProfileScreen()),
+            );
           }
         },
         items: const <BottomNavigationBarItem>[
