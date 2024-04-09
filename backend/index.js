@@ -290,7 +290,7 @@ app.put('/products/:id', upload.single('image'), (req, res) => {
     // Extract updated product details from the request body
     const { name, description, price, quantity, vendor_id, category_id } = req.body;
 
-    // If a new image was uploaded, update the image URL in the images table
+    // If a new image was uploaded, update the image URL in the images table 
     if (req.file) {
         const imageUrl = `baseURL/${req.file.filename}`;
 
@@ -304,7 +304,7 @@ app.put('/products/:id', upload.single('image'), (req, res) => {
     }
 
     // Query to update product details in the products table
-    const query = 'UPDATE Products SET name = ?, description = ?, price = ?, quantity = ?, vendor_id = ?, category_id = ? WHERE product_id = ?';
+    const query = 'UPDATE Products SET name = ?, description = ?, price = ?, quantity = ?, category_id = ? WHERE product_id = ?';
     connection.query(query, [name, description, price, quantity, vendor_id, category_id, productId], (error, results) => {
         if (error) {
             console.error('Error updating product:', error);
@@ -428,6 +428,29 @@ app.get('/user/profile', (req, res) => {
     // You might hash passwords before storing them in the database for security
     return res.status(200).json({ message: 'Password changed successfully' });
   });
+
+  // Endpoint to add a product to the cart
+app.post('/cart', (req, res) => {
+    const { userId, productId } = req.body;
+
+    // Check if all required fields are provided
+    if (!userId || !productId) {
+        return res.status(400).json({ message: 'User ID and Product ID are required' });
+    }
+
+    // Insert the new item into the cart table
+    const query = 'INSERT INTO cart (user_id, product_id) VALUES (?, ?)';
+    
+    connection.query(query, [userId, productId], (error, results) => {
+        if (error) {
+            console.error('Error adding product to cart:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+        
+        // Item added to cart successfully
+        res.status(201).json({ message: 'Product added to cart successfully' });
+    });
+});
 
 app.use((err, req, res, next) => {
     console.error(err.stack);
