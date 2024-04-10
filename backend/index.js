@@ -429,28 +429,7 @@ app.get('/user/profile', (req, res) => {
     return res.status(200).json({ message: 'Password changed successfully' });
   });
 
-  // Endpoint to add a product to the cart
-app.post('/cart', (req, res) => {
-    const { userId, productId } = req.body;
-
-    // Check if all required fields are provided
-    if (!userId || !productId) {
-        return res.status(400).json({ message: 'User ID and Product ID are required' });
-    }
-
-    // Insert the new item into the cart table
-    const query = 'INSERT INTO cart (user_id, product_id) VALUES (?, ?)';
-    
-    connection.query(query, [userId, productId], (error, results) => {
-        if (error) {
-            console.error('Error adding product to cart:', error);
-            return res.status(500).json({ message: 'Internal server error' });
-        }
-        
-        // Item added to cart successfully
-        res.status(201).json({ message: 'Product added to cart successfully' });
-    });
-});
+ 
 
 app.use((err, req, res, next) => {
     console.error(err.stack);

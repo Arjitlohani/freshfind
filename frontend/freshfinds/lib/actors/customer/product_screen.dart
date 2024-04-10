@@ -143,11 +143,18 @@ class ProductCard extends StatelessWidget {
           Expanded(
             child: ClipRRect(
               borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
-              child: Image.network(
-                product['image_url'] ?? '',
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
+              child: product['image_url'] != null &&
+                      product['image_url'].isNotEmpty
+                  ? Image.network(
+                      product['image_url']!,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    )
+                  : Image.asset(
+                      'assets/default_image.jpg',
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
             ),
           ),
           Padding(
@@ -170,7 +177,7 @@ class ProductCard extends StatelessWidget {
                 ),
                 SizedBox(height: 3),
                 Text(
-                  '\$${product['price'] ?? ''}',
+                  '\RS.${product['price'] ?? ''}',
                   style: TextStyle(
                     color: Colors.green,
                     fontWeight: FontWeight.bold,
