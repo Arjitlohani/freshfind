@@ -290,7 +290,7 @@ app.put('/products/:id', upload.single('image'), (req, res) => {
     // Extract updated product details from the request body
     const { name, description, price, quantity, vendor_id, category_id } = req.body;
 
-    // If a new image was uploaded, update the image URL in the images table
+    // If a new image was uploaded, update the image URL in the images table 
     if (req.file) {
         const imageUrl = `baseURL/${req.file.filename}`;
 
@@ -304,7 +304,7 @@ app.put('/products/:id', upload.single('image'), (req, res) => {
     }
 
     // Query to update product details in the products table
-    const query = 'UPDATE Products SET name = ?, description = ?, price = ?, quantity = ?, vendor_id = ?, category_id = ? WHERE product_id = ?';
+    const query = 'UPDATE Products SET name = ?, description = ?, price = ?, quantity = ?, category_id = ? WHERE product_id = ?';
     connection.query(query, [name, description, price, quantity, vendor_id, category_id, productId], (error, results) => {
         if (error) {
             console.error('Error updating product:', error);
@@ -428,6 +428,8 @@ app.get('/user/profile', (req, res) => {
     // You might hash passwords before storing them in the database for security
     return res.status(200).json({ message: 'Password changed successfully' });
   });
+
+ 
 
 app.use((err, req, res, next) => {
     console.error(err.stack);
