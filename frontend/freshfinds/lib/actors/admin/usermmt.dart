@@ -357,16 +357,14 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       );
 
       if (response.statusCode == 200) {
-        final dynamic responseData = jsonDecode(response.body)['users'];
-        List<Map<String, dynamic>> users =
-            List<Map<String, dynamic>>.from(responseData);
-        return users
-            .isEmpty; // Return true if the list is empty (username is unique)
+        final dynamic responseData = jsonDecode(response.body)['exists'];
+        return responseData; // Return the existence status of the username
       } else {
-        throw Exception('Failed to fetch users: ${response.statusCode}');
+        throw Exception('Failed to fetch username existence status');
       }
     } catch (e) {
-      throw Exception('Failed to fetch users. Please try again later.');
+      print('Error fetching username existence status: $e');
+      return false; // Return false to indicate failure
     }
   }
 
@@ -509,7 +507,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                         'password': editPasswordController.text,
                         'phone_number': editPhoneNumberController.text,
                         'address': editAddressController.text,
-                        'role': editRoleController.text,
+                        'role': int.parse(editRoleController.text),
                       }),
                     );
 
@@ -561,8 +559,9 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
                   );
 
                   if (response.statusCode == 200) {
+                    // Call function to update user list
+                    await _updateUserList();
                     _showSuccessDialog('User deleted successfully.');
-                    _fetchUser();
                   } else {
                     throw Exception(
                         'Failed to delete user: ${response.statusCode}');
@@ -578,6 +577,28 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         );
       },
     );
+  }
+
+// Function to update user list
+  Future<void> _updateUserList() async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://$ipAddress:$port/users?limit=5&offset=$_offset'),
+      );
+
+      if (response.statusCode == 200) {
+        final dynamic responseData = jsonDecode(response.body)['users'];
+        setState(() {
+          _users = List<Map<String, dynamic>>.from(responseData);
+          _isLoading = false;
+          _offset += 5; // Increment offset for next pagination
+        });
+      } else {
+        throw Exception('Failed to fetch users: ${response.statusCode}');
+      }
+    } catch (e) {
+      _showErrorDialog('Failed to fetch users. Please try again later.');
+    }
   }
 
   void _showSuccessDialog(String message) {

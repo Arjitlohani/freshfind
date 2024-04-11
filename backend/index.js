@@ -122,7 +122,7 @@ app.post('/users', (req, res) => {
 
     connection.query('SELECT * FROM user WHERE email = ?', [email], (error, results) => {
         if (error) {
-            console.error('Error executing query:', error);
+            console.error('Error executing SELECT query:', error);
             return res.status(500).json({ message: 'Internal server error' });
         }
 
@@ -133,7 +133,7 @@ app.post('/users', (req, res) => {
         const query = 'INSERT INTO user (user_name, email, password, phone_number, address, role) VALUES (?, ?, ?, ?, ?, ?)';
         connection.query(query, [username, email, password, phone_number, address, role], (error) => {
             if (error) {
-                console.error('Error executing query:', error);
+                console.error('Error executing INSERT query:', error);
                 return res.status(500).json({ message: 'Internal server error' });
             }
 
@@ -192,12 +192,66 @@ app.get('/users/search/name', (req, res) => {
 
         // If a user with the provided username exists, return appropriate response
         if (results.length > 0) {
-            return res.status(200).json({ exists: true });
-        } else {
             return res.status(200).json({ exists: false });
+        } else {
+            return res.status(200).json({ exists: true });
         }
     });
 }); 
+
+app.put('/users/:id', (req, res) => {
+    const userId = req.params.id;
+    const { username, email, password, phone_number, address, role } = req.body;
+
+    // Check if all required fields are provided
+    if (!username || !email || !password || !phone_number || !address || !role) {
+        return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    // Check if the role is valid (you can add additional checks here if needed)
+    if (![1, 2, 3, 4].includes(role)) {
+        return res.status(400).json({ message: 'Invalid role' });
+    }
+
+    // Query to update user details in the database
+    const query = 'UPDATE user SET user_name = ?, email = ?, password = ?, phone_number = ?, address = ?, role = ? WHERE user_id = ?';
+    connection.query(query, [username, email, password, phone_number, address, role, userId], (error, results) => {
+        if (error) {
+            console.error('Error updating user:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+
+        // Check if the user was updated successfully
+        if (results.affectedRows === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // User updated successfully
+        return res.status(200).json({ message: 'User updated successfully' });
+    });
+});
+
+app.delete('/users/:id', (req, res) => {
+    const userId = req.params.id;
+
+    // Query to delete user by ID
+    const query = 'DELETE FROM user WHERE user_id = ?'; // primary key column is 'user_id'
+    connection.query(query, [userId], (error, results) => {
+        if (error) {
+            console.error('Error executing query:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+
+        // Check if the user was deleted successfully
+        if (results.affectedRows === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // User deleted successfully
+        return res.status(200).json({ message: 'User deleted successfully' });
+    });
+});
+
 
 // Endpoint to get all products with image URLs
 app.get('/products', (req, res) => {
