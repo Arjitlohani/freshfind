@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:freshfinds/actors/customer/addto_cart.dart';
+import 'package:freshfinds/actors/customer/customer_dashboard.dart';
+import 'package:freshfinds/actors/profile.dart';
 import 'package:freshfinds/api/api.dart';
 import 'package:http/http.dart' as http;
 
@@ -15,6 +17,7 @@ class ProductsScreen extends StatefulWidget {
 
 class _ProductsScreenState extends State<ProductsScreen> {
   List<Map<String, dynamic>> _products = [];
+  List<Map<String, dynamic>> _cartItems = [];
 
   @override
   void initState() {
@@ -41,6 +44,18 @@ class _ProductsScreenState extends State<ProductsScreen> {
     }
   }
 
+  void _addToCart(Map<String, dynamic> product) {
+    setState(() {
+      _cartItems.add({
+        'name': product['name'],
+        'description': product['description'],
+        'price': product['price'],
+        'image_url': product['image_url'], // Add image URL
+      });
+    });
+    print('Product added to cart successfully: ${product['name']}');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -57,8 +72,48 @@ class _ProductsScreenState extends State<ProductsScreen> {
         itemCount: _products.length,
         itemBuilder: (context, index) {
           final product = _products[index];
-          return ProductCard(product: product);
+          return ProductCard(
+            product: product,
+            addToCart: _addToCart,
+          );
         },
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.lightGreen, // Light green background color
+        selectedItemColor: Colors.white, // Color of selected item
+        unselectedItemColor: Colors.grey, // Color of unselected items
+        currentIndex: 1, // Index of the Cart icon
+        onTap: (index) {
+          if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => CartPage(cartItems: _cartItems)),
+            );
+          } else if (index == 0) {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => DashboardScreen()));
+          } else if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => ProfileScreen()),
+            );
+          }
+        },
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'Cart',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
       ),
     );
   }
@@ -66,8 +121,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
 class ProductCard extends StatelessWidget {
   final Map<String, dynamic> product;
+  final Function(Map<String, dynamic>) addToCart;
 
-  const ProductCard({required this.product, Key? key}) : super(key: key);
+  const ProductCard({
+    required this.product,
+    required this.addToCart,
+    Key? key,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -79,14 +139,22 @@ class ProductCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Enlarge image
           Expanded(
             child: ClipRRect(
               borderRadius: BorderRadius.vertical(top: Radius.circular(10)),
-              child: Image.network(
-                product['image_url'] ?? '',
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
+              child: product['image_url'] != null &&
+                      product['image_url'].isNotEmpty
+                  ? Image.network(
+                      product['image_url']!,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    )
+                  : Image.asset(
+                      'assets/default_image.jpg',
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
             ),
           ),
           Padding(
@@ -98,7 +166,7 @@ class ProductCard extends StatelessWidget {
                   product['name'] ?? '',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    fontSize: 16,
+                    fontSize: 14,
                   ),
                 ),
                 SizedBox(height: 2),
@@ -107,9 +175,9 @@ class ProductCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(height: 4),
+                SizedBox(height: 3),
                 Text(
-                  '\$${product['price'] ?? ''}',
+                  '\RS.${product['price'] ?? ''}',
                   style: TextStyle(
                     color: Colors.green,
                     fontWeight: FontWeight.bold,
@@ -125,22 +193,15 @@ class ProductCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: ElevatedButton(
                 onPressed: () {
-                  // Navigate to the CartPage and pass the product details
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CartPage(product: product),
-                    ),
-                  );
+                  addToCart(product);
                 },
                 child: Text(
                   'Add to Cart',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
+                  style: TextStyle(fontSize: 14, color: Colors.white),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                      Color.fromARGB(255, 23, 99, 37), // Button color
-                  padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  backgroundColor: Color.fromARGB(255, 23, 99, 37),
+                  padding: EdgeInsets.symmetric(horizontal: 15, vertical: 8),
                 ),
               ),
             ),

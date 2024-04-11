@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:freshfinds/actors/customer/addto_cart.dart';
+import 'package:freshfinds/actors/customer/customer_dashboard.dart';
 import 'package:freshfinds/api/api.dart';
 import 'package:http/http.dart' as http;
 
@@ -13,6 +15,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _name = '';
   String _email = '';
   String _password = '';
+  int _selectedIndex = 0;
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    // Navigate to the appropriate page based on the tapped index
+    switch (index) {
+      case 0:
+        // Navigate to home page
+        // Replace 'HomePage()' with your actual home page widget
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => DashboardScreen()),
+        );
+        break;
+      case 1:
+        // Navigate to cart page with dummy product data
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CartPage(
+              cartItems: [],
+            ),
+          ),
+        );
+        break;
+
+      case 2:
+        break;
+      default:
+        break;
+    }
+  }
 
   // Method to fetch user data from the backend
   Future<void> _fetchUserData() async {
@@ -113,6 +149,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.lightGreen, // Light green background color
+        selectedItemColor: Colors.white, // Color of selected item
+        unselectedItemColor: Colors.grey, // Color of unselected items
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'Cart',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
       ),
     );
   }
