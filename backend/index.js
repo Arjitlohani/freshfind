@@ -122,7 +122,7 @@ app.post('/users', (req, res) => {
 
     connection.query('SELECT * FROM user WHERE email = ?', [email], (error, results) => {
         if (error) {
-            console.error('Error executing query:', error);
+            console.error('Error executing SELECT query:', error);
             return res.status(500).json({ message: 'Internal server error' });
         }
 
@@ -133,7 +133,7 @@ app.post('/users', (req, res) => {
         const query = 'INSERT INTO user (user_name, email, password, phone_number, address, role) VALUES (?, ?, ?, ?, ?, ?)';
         connection.query(query, [username, email, password, phone_number, address, role], (error) => {
             if (error) {
-                console.error('Error executing query:', error);
+                console.error('Error executing INSERT query:', error);
                 return res.status(500).json({ message: 'Internal server error' });
             }
 
