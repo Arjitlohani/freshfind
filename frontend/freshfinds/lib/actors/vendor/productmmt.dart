@@ -304,6 +304,11 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
   }
 
   void _searchProductById(BuildContext context) async {
+    if (_productIdController.text.isEmpty) {
+      setState(() {
+        _products.clear();
+      });
+    }
     final productId = int.parse(_productIdController.text);
     final url = Uri.parse('http://$ipAddress:$port/products/$productId');
     try {
