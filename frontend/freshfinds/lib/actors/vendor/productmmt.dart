@@ -192,9 +192,8 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
               ),
               SizedBox(height: 20),
 // Display the image dynamically from the URL
-              _imageUrl == null
-                  ? Image.asset(
-                      'assets/default_image.jpg') // Display default image if URL is null
+              _imageUrl == null || _imageUrl!.isEmpty
+                  ? SizedBox() // Don't show anything if _imageUrl is null or empty
                   : Image.network(
                       'http://$ipAddress:$port/$_imageUrl',
                       loadingBuilder: (BuildContext context, Widget child,
@@ -324,6 +323,9 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
         });
       } else {
         _showErrorDialog(context, 'Product not found.');
+        setState(() {
+          _products.clear();
+        });
       }
     } catch (e) {
       _showErrorDialog(context, 'Failed to search product. Please try again.');
@@ -527,56 +529,79 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
     );
   }
 
-  void _deleteProduct(Map<String, dynamic> product) {
-    // Implement delete functionality
-    // You can show a confirmation dialog and delete the product if confirmed.
-    void _showDeleteDialog(BuildContext context) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Deleted'),
-            content: Text('Product and associated image deleted successfully.'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  _clearTextFields();
-                },
-                child: Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
-    }
+  void _deleteProduct(Map<String, dynamic> product) async {
+    try {
+      final productId = product['product_id'];
+      final url = Uri.parse('http://$ipAddress:$port/products/$productId');
 
-    void _deleteProduct(Map<String, dynamic> product) async {
-      try {
-        final productId = product['product_id'];
-        final url = Uri.parse('http://$ipAddress:$port/products/$productId');
+      final response = await http.delete(url);
 
-        final response = await http.delete(url);
-
-        if (response.statusCode == 200) {
-          // Product and associated image deleted successfully
-
-          _showDeleteDialog(context);
-        } else if (response.statusCode == 404) {
-          // Product not found
-          _showErrorDialog(context, 'Product not found.');
-        } else {
-          // Failed to delete product
-          final responseData = jsonDecode(response.body);
-          final errorMessage =
-              responseData['message'] ?? 'Failed to delete product.';
-          _showErrorDialog(context, errorMessage);
-        }
-      } catch (e) {
-        // Error occurred while deleting product
-        _showErrorDialog(
-            context, 'Failed to delete product. Please try again.');
+      if (response.statusCode == 200) {
+        // Product and associated image deleted successfully
+        _showDeleteDialog(
+            context, 'Product and associated image deleted successfully.');
+        // Clear the products list to remove the deleted product from the table
+        setState(() {
+          _products.clear();
+        });
+      } else if (response.statusCode == 404) {
+        // Product not found
+        _showErrorDialog(context, 'Product not found.');
+      } else {
+        // Failed to delete product
+        final responseData = jsonDecode(response.body);
+        final errorMessage =
+            responseData['message'] ?? 'Failed to delete product.';
+        _showErrorDialog(context, errorMessage);
       }
+    } catch (e) {
+      // Error occurred while deleting product
+      _showErrorDialog(context, 'Failed to delete product. Please try again.');
     }
   }
+
+  void _showDeleteDialog(BuildContext context, String s) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Deleted'),
+          content: Text('Product and associated image deleted successfully.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _clearTextFields();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // void _deleteProduct(Map<String, dynamic> product) {
+  //   // Implement delete functionality
+  //   // You can show a confirmation dialog and delete the product if confirmed.
+  //   void _showDeleteDialog(BuildContext context) {
+  //     showDialog(
+  //       context: context,
+  //       builder: (BuildContext context) {
+  //         return AlertDialog(
+  //           title: Text('Deleted'),
+  //           content: Text('Product and associated image deleted successfully.'),
+  //           actions: <Widget>[
+  //             TextButton(
+  //               onPressed: () {
+  //                 Navigator.of(context).pop();
+  //                 _clearTextFields();
+  //               },
+  //               child: Text('OK'),
+  //             ),
+  //           ],
+  //         );
+  //       },
+  //     );
+  //   }
 }
