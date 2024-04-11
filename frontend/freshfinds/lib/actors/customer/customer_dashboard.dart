@@ -76,7 +76,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Customer Dashboard'),
+        title: Text(
+          'Customer Dashboard',
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: const Color.fromARGB(255, 54, 99, 56),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.logout,
+              color: Colors.white,
+            ),
+            onPressed: () => _logout(context),
+          ),
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -115,8 +128,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.lightGreen, // Light green background color
-        selectedItemColor: Colors.white, // Color of selected item
-        unselectedItemColor: Colors.grey, // Color of unselected items
+        selectedItemColor: Colors.grey, // Color of selected item
+        unselectedItemColor: Colors.white, // Color of unselected items
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         items: const <BottomNavigationBarItem>[
@@ -136,6 +149,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
+}
+
+void _logout(BuildContext context) {
+  Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
 }
 
 class VendorContainer extends StatelessWidget {
