@@ -64,7 +64,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         },
         items: const [
           BottomNavigationBarItem(
-            backgroundColor: Colors.lightGreen,
             icon: Icon(Icons.home),
             label: 'Home',
           ),
