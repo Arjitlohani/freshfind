@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:freshfinds/api/api.dart';
 import 'package:http/http.dart' as http;
@@ -23,8 +24,10 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
   String? _selectedCategory;
   String? category_id;
   String? _imageUrl;
+
   List<Map<String, dynamic>> _category = [];
   List<Map<String, dynamic>> _products = [];
+
   @override
   void initState() {
     super.initState();
@@ -34,8 +37,10 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
 
   Future<void> _fetchCategories() async {
     final url = Uri.parse('http://$ipAddress:$port/category');
+
     try {
       final response = await http.get(url);
+
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
         setState(() {
@@ -84,6 +89,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                 controller: _vendorIdController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(labelText: 'Vendor ID'),
+                enabled: false, // User cannot edit vendor ID
               ),
               SizedBox(height: 20),
               DropdownButtonFormField<String>(
@@ -95,24 +101,13 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                         newValue); // Update the category ID value
                   });
                 },
-                items: [
-                  DropdownMenuItem(
-                    value: 'Fruits',
-                    child: Text('Fruits'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Vegetables',
-                    child: Text('Vegetables'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Beverages',
-                    child: Text('Beverages'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'Dairy',
-                    child: Text('Dairy'),
-                  ),
-                ],
+                items: _category.map<DropdownMenuItem<String>>(
+                    (Map<String, dynamic> category) {
+                  return DropdownMenuItem<String>(
+                    value: category['name'],
+                    child: Text(category['name']),
+                  );
+                }).toList(),
                 decoration: InputDecoration(labelText: 'Select Category'),
               ),
               SizedBox(height: 20),
@@ -127,11 +122,13 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                       child: Text('Select Image'),
                     )
                   : Image.file(_imageFile!), // Show selected image
+
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => _addProduct(context),
                 child: Text('Add Product'),
               ),
+
               SizedBox(height: 20),
               TextField(
                 controller: _productIdController,
@@ -191,28 +188,10 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                 ),
               ),
               SizedBox(height: 20),
-// Display the image dynamically from the URL
+              // Display the image dynamically from the URL
               _imageUrl == null
-                  ? Image.asset(
-                      'assets/default_image.jpg') // Display default image if URL is null
-                  : Image.network(
-                      'http://$ipAddress:$port/$_imageUrl',
-                      loadingBuilder: (BuildContext context, Widget child,
-                          ImageChunkEvent? loadingProgress) {
-                        if (loadingProgress == null) {
-                          return child; // Return the image if loading is complete
-                        } else {
-                          return Center(
-                              child:
-                                  CircularProgressIndicator()); // Display loading indicator while loading
-                        }
-                      },
-                      errorBuilder: (BuildContext context, Object exception,
-                          StackTrace? stackTrace) {
-                        return Image.asset(
-                            'assets/default_image.jpg'); // Display default image if error occurs
-                      },
-                    ),
+                  ? Text('$_imageUrl')
+                  : Image.network('http://$ipAddress:$port/$_imageUrl'),
             ],
           ),
         ),
@@ -223,6 +202,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
   void _selectImage() async {
     final pickedFile =
         await ImagePicker().pickImage(source: ImageSource.gallery);
+
     if (pickedFile != null) {
       setState(() {
         _imageFile = File(pickedFile.path);
@@ -236,19 +216,19 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
         _descriptionController.text.isEmpty ||
         _priceController.text.isEmpty ||
         _quantityController.text.isEmpty ||
-        _vendorIdController.text.isEmpty ||
         _selectedCategory == null) {
       _showErrorDialog(context, 'All fields are required.');
       return;
     }
+
     try {
       final name = _nameController.text;
       final description = _descriptionController.text;
       final price = double.parse(_priceController.text);
       final quantity = int.parse(_quantityController.text);
-      final vendorId = int.parse(_vendorIdController.text);
       final category = _selectedCategory;
       final categoryId = _getCategoryId(category);
+
       final url = Uri.parse('http://$ipAddress:$port/products');
       final headers = <String, String>{'Content-Type': 'application/json'};
       final body = jsonEncode({
@@ -256,10 +236,11 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
         'description': description,
         'price': price,
         'quantity': quantity,
-        'vendor_id': vendorId,
         'category_id': categoryId,
       });
+
       final response = await http.post(url, headers: headers, body: body);
+
       if (response.statusCode == 201) {
         // If product added successfully, upload the image
         final productId = jsonDecode(response.body)['productId'].toString();
@@ -284,6 +265,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
 
   Future<void> _uploadImage(String productId) async {
     if (_imageFile == null) return;
+
     try {
       final url = Uri.parse('http://$ipAddress:$port/upload');
       final request = http.MultipartRequest('POST', url);
@@ -307,8 +289,10 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
   void _searchProductById(BuildContext context) async {
     final productId = int.parse(_productIdController.text);
     final url = Uri.parse('http://$ipAddress:$port/products/$productId');
+
     try {
       final response = await http.get(url);
+
       if (response.statusCode == 200) {
         final productData = jsonDecode(response.body);
         // Update the _products list with the searched product details
@@ -318,8 +302,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
           if (productData.containsKey('image_url')) {
             _imageUrl = '${productData['image_url']}'; // Store the image URL
           } else {
-            // If no image URL is found, set it to a default image
-            _imageUrl = 'assets/default_image.jpg';
+            _imageUrl = null; // Reset _imageUrl if no image URL is found
           }
         });
       } else {
@@ -374,7 +357,6 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
     _descriptionController.clear();
     _priceController.clear();
     _quantityController.clear();
-    _vendorIdController.clear();
     _productIdController.clear();
     setState(() {
       _selectedCategory = null;
@@ -468,7 +450,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                     _updateProduct(product);
                     Navigator.of(context).pop();
                   },
-                  child: Text('Update'),
+                  child: Text('Save'),
                 ),
               ],
             ),
@@ -490,7 +472,9 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
         'quantity': product['quantity'],
         'category_id': product['category_id'],
       });
+
       final response = await http.put(url, headers: headers, body: body);
+
       if (response.statusCode == 200) {
         // Product updated successfully
         _showUpdateDialog(context, 'Product updated successfully.');
@@ -527,56 +511,51 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
     );
   }
 
-  void _deleteProduct(Map<String, dynamic> product) {
-    // Implement delete functionality
-    // You can show a confirmation dialog and delete the product if confirmed.
-    void _showDeleteDialog(BuildContext context) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Deleted'),
-            content: Text('Product and associated image deleted successfully.'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  _clearTextFields();
-                },
-                child: Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
-    }
+  void _showDeleteDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Deleted'),
+          content: Text('Product and associated image deleted successfully.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _clearTextFields();
+              },
+              child: Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
-    void _deleteProduct(Map<String, dynamic> product) async {
-      try {
-        final productId = product['product_id'];
-        final url = Uri.parse('http://$ipAddress:$port/products/$productId');
+  void _deleteProduct(Map<String, dynamic> product) async {
+    try {
+      final productId = product['product_id'];
+      final url = Uri.parse('http://$ipAddress:$port/products/$productId');
 
-        final response = await http.delete(url);
+      final response = await http.delete(url);
 
-        if (response.statusCode == 200) {
-          // Product and associated image deleted successfully
+      if (response.statusCode == 200) {
+        // Product and associated image deleted successfully
 
-          _showDeleteDialog(context);
-        } else if (response.statusCode == 404) {
-          // Product not found
-          _showErrorDialog(context, 'Product not found.');
-        } else {
-          // Failed to delete product
-          final responseData = jsonDecode(response.body);
-          final errorMessage =
-              responseData['message'] ?? 'Failed to delete product.';
-          _showErrorDialog(context, errorMessage);
-        }
-      } catch (e) {
-        // Error occurred while deleting product
-        _showErrorDialog(
-            context, 'Failed to delete product. Please try again.');
+        _showDeleteDialog(context);
+      } else if (response.statusCode == 404) {
+        // Product not found
+        _showErrorDialog(context, 'Product not found.');
+      } else {
+        // Failed to delete product
+        final responseData = jsonDecode(response.body);
+        final errorMessage =
+            responseData['message'] ?? 'Failed to delete product.';
+        _showErrorDialog(context, errorMessage);
       }
+    } catch (e) {
+      // Error occurred while deleting product
+      _showErrorDialog(context, 'Failed to delete product. Please try again.');
     }
   }
 }
