@@ -14,40 +14,6 @@ class CartPage extends StatefulWidget {
 class _CartPageState extends State<CartPage> {
   int _selectedIndex = 0;
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-    // Navigate to the appropriate page based on the tapped index
-    switch (index) {
-      case 0:
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => DashboardScreen()));
-        break;
-      case 1:
-        // Navigate to cart page with dummy product data
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => const CartPage(
-                    cartItems: [],
-                  )),
-        );
-        break;
-      case 2:
-        // Navigate to profile page
-        // Replace 'ProfileScreen()' with your actual profile page widget
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => ProfileScreen()),
-        );
-        break;
-      default:
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -98,6 +64,29 @@ class _CartPageState extends State<CartPage> {
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    // Navigate to the appropriate page based on the tapped index
+    switch (index) {
+      case 0:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => DashboardScreen()));
+        break;
+      case 2:
+        // Navigate to profile page
+        // Replace 'ProfileScreen()' with your actual profile page widget
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => ProfileScreen()),
+        );
+        break;
+      default:
+        break;
+    }
   }
 
   void _deleteItem(Map<String, dynamic> item) {

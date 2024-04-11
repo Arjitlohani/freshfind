@@ -461,15 +461,6 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(labelText: 'Quantity'),
                 ),
-                TextField(
-                  controller: TextEditingController(
-                      text: product['vendor_id'].toString()),
-                  onChanged: (value) {
-                    product['vendor_id'] = int.parse(value);
-                  },
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(labelText: 'Vendor ID'),
-                ),
                 SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () {
@@ -477,7 +468,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                     _updateProduct(product);
                     Navigator.of(context).pop();
                   },
-                  child: Text('Save'),
+                  child: Text('Update'),
                 ),
               ],
             ),
@@ -497,7 +488,6 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
         'description': product['description'],
         'price': product['price'],
         'quantity': product['quantity'],
-        'vendor_id': product['vendor_id'],
         'category_id': product['category_id'],
       });
       final response = await http.put(url, headers: headers, body: body);
