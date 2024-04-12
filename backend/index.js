@@ -343,7 +343,7 @@ app.get('/products/:id', (req, res) => {
 
         // If no product found, return 404
         if (results.length === 0) {
-            return res.status(404).json({ message: 'Product not found.' });
+            return res.status(404).json({ message: 'Product not found' });
         }
 
         // Return the product along with the image URL
@@ -352,54 +352,28 @@ app.get('/products/:id', (req, res) => {
 });
 
 
-// app.put('/products/:id', upload.single('image'), (req, res) => {
-//     const productId = req.params.id;
-
-//     // Extract updated product details from the request body
-//     const { name, description, price, quantity,  category_id } = req.body;
-
-//     // If a new image was uploaded, update the image URL in the images table 
-//     if (req.file) {
-//         const imageUrl = `baseURL/${req.file.filename}`;
-
-//         const imageQuery = 'UPDATE Images SET image_url = ? WHERE product_id = ?';
-//         connection.query(imageQuery, [imageUrl, productId], (imageError, imageResults) => {
-//             if (imageError) {
-//                 console.error('Error updating image URL:', imageError);
-//                 return res.status(500).json({ message: 'Internal server error' });
-//             }
-//         });
-//     }
-
-//     // Query to update product details in the products table
-//     const query = 'UPDATE Products SET name = ?, description = ?, price = ?, quantity = ?, category_id = ? WHERE product_id = ?';
-//     connection.query(query, [name, description, price, quantity, productId, category_id], (error, results) => {
-
-//         if (error) {
-//             console.error('Error updating product:', error);
-//             return res.status(500).json({ message: 'Internal server error' });
-//         }
-
-//         // Check if the product was updated successfully
-//         if (results.affectedRows === 0) {
-//             return res.status(404).json({ message: 'Product not found.' });
-//         }
-
-//         // Product updated successfully
-//         return res.status(200).json({ message: 'Product updated successfully' });
-//     });
-// });
-
-// Endpoint to update a product by ID
-app.put('/products/:id', (req, res) => {
+app.put('/products/:id', upload.single('image'), (req, res) => {
     const productId = req.params.id;
 
     // Extract updated product details from the request body
-    const { name, description, price, quantity, category_id } = req.body;
+    const { name, description, price, quantity, vendor_id, category_id } = req.body;
 
-    // Query to update product details in the database
-    const query = 'UPDATE Products SET name = ?, description = ?, price = ?, quantity = ?,category_id = ? WHERE product_id = ?';
-    connection.query(query, [name, description, price, quantity, category_id, productId], (error, results) => {
+    // If a new image was uploaded, update the image URL in the images table
+    if (req.file) {
+        const imageUrl = `baseURL/${req.file.filename}`;
+
+        const imageQuery = 'UPDATE Images SET image_url = ? WHERE product_id = ?';
+        connection.query(imageQuery, [imageUrl, productId], (imageError, imageResults) => {
+            if (imageError) {
+                console.error('Error updating image URL:', imageError);
+                return res.status(500).json({ message: 'Internal server error' });
+            }
+        });
+    }
+
+    // Query to update product details in the products table
+    const query = 'UPDATE Products SET name = ?, description = ?, price = ?, quantity = ?, vendor_id = ?, category_id = ? WHERE product_id = ?';
+    connection.query(query, [name, description, price, quantity, vendor_id, category_id, productId], (error, results) => {
         if (error) {
             console.error('Error updating product:', error);
             return res.status(500).json({ message: 'Internal server error' });
@@ -414,7 +388,6 @@ app.put('/products/:id', (req, res) => {
         return res.status(200).json({ message: 'Product updated successfully' });
     });
 });
-
 
 
 
@@ -523,8 +496,6 @@ app.get('/user/profile', (req, res) => {
     // You might hash passwords before storing them in the database for security
     return res.status(200).json({ message: 'Password changed successfully' });
   });
-
- 
 
 app.use((err, req, res, next) => {
     console.error(err.stack);
