@@ -36,8 +36,22 @@ const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     password: '',
-    database: 'freshfinds'
+    database: 'freshfind'
 });
+
+// app.get('/ping', (req, res)=>{
+//     const query = 'SELECT * FROM user';
+//     connection.query(query, (error, results, fields) => {
+//         if (error) {
+//             console.error('Error executing query:', error);
+//             return res.status(500).json({ message: 'Internal server error' });
+//         }
+//         return res.status(200).json({ message: 'pong', users: results });
+//     });
+    
+   
+// }
+// )
 
 // Endpoint to handle user login
 app.post('/login', (req, res) => {
@@ -53,7 +67,7 @@ app.post('/login', (req, res) => {
     SELECT user.*, role.role_id as role
     FROM user 
     JOIN role ON user.role = role.role_id 
-    WHERE email = ? AND password = ?
+    WHERE (email = ? OR user_name = ?) AND password = ? 
 `;
 
     connection.query(query, [email, password], (error, results, fields) => {

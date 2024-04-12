@@ -130,15 +130,7 @@ class _CartItemState extends State<CartItem> {
     return ListTile(
       leading: widget.item['image_url'] != null &&
               widget.item['image_url'].isNotEmpty
-          ? Image.network(
-              widget.item['image_url']!,
-              errorBuilder: (BuildContext context, Object exception,
-                  StackTrace? stackTrace) {
-                return Image.asset(
-                  'assets/default_image.jpg',
-                );
-              },
-            )
+          ? Image.network(widget.item['image_url']!)
           : Image.asset(
               'assets/default_image.jpg',
             ),
@@ -188,4 +180,8 @@ class _CartItemState extends State<CartItem> {
       ),
     );
   }
+}
+
+class CartState {
+  static List<Map<String, dynamic>> cartItems = [];
 }

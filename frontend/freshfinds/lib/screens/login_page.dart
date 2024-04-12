@@ -3,11 +3,18 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../api/api.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
+  LoginPage({Key? key}) : super(key: key);
+
+  @override
+  _LoginPageState createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  LoginPage({super.key});
+  bool _showPassword = false; // Variable to control password visibility
 
   Future<void> _login(BuildContext context) async {
     const String url = 'http://$ipAddress:$port/login';
@@ -100,10 +107,24 @@ class LoginPage extends StatelessWidget {
                 decoration: const InputDecoration(labelText: 'Email'),
               ),
               const SizedBox(height: 16), // Add some spacing between fields
+              const SizedBox(height: 16), // Add some spacing between fields
               TextFormField(
                 controller: passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'Password'),
+                obscureText:
+                    !_showPassword, // Show/hide password based on _showPassword
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  suffixIcon: IconButton(
+                    icon: Icon(_showPassword
+                        ? Icons.visibility
+                        : Icons.visibility_off),
+                    onPressed: () {
+                      setState(() {
+                        _showPassword = !_showPassword; // Toggle _showPassword
+                      });
+                    },
+                  ),
+                ),
               ),
               const SizedBox(height: 16), // Add some spacing between fields
               ElevatedButton(

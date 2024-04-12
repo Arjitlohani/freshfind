@@ -149,14 +149,6 @@ class ProductCard extends StatelessWidget {
                       product['image_url']!,
                       width: double.infinity,
                       fit: BoxFit.cover,
-                      errorBuilder: (BuildContext context, Object exception,
-                          StackTrace? stackTrace) {
-                        return Image.asset(
-                          'assets/default_image.jpg',
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        );
-                      },
                     )
                   : Image.asset(
                       'assets/default_image.jpg',
