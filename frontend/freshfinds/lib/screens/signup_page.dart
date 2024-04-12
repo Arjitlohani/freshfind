@@ -4,14 +4,21 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'login_page.dart';
 
-class SignupPage extends StatelessWidget {
+class SignupPage extends StatefulWidget {
+  SignupPage({Key? key}) : super(key: key);
+
+  @override
+  _SignupPageState createState() => _SignupPageState();
+}
+
+class _SignupPageState extends State<SignupPage> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController phoneNumberController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
 
-  SignupPage({super.key});
+  bool _showPassword = false; // Variable to control password visibility
 
   Future<void> _signup(BuildContext context) async {
     const String url = 'http://$ipAddress:$port/signup';
@@ -96,8 +103,21 @@ class SignupPage extends StatelessWidget {
               ),
               TextFormField(
                 controller: passwordController,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'Password'),
+                obscureText:
+                    !_showPassword, // Show/hide password based on _showPassword
+                decoration: InputDecoration(
+                  labelText: 'Password',
+                  suffixIcon: IconButton(
+                    icon: Icon(_showPassword
+                        ? Icons.visibility
+                        : Icons.visibility_off),
+                    onPressed: () {
+                      setState(() {
+                        _showPassword = !_showPassword; // Toggle _showPassword
+                      });
+                    },
+                  ),
+                ),
               ),
               TextFormField(
                 controller: phoneNumberController,
