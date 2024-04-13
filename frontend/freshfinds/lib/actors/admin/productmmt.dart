@@ -14,7 +14,7 @@ class ProductManagementScreen extends StatefulWidget {
 class _ProductManagementScreenState extends State<ProductManagementScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
-  final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _rateController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
   final TextEditingController _vendorIdController = TextEditingController();
   final TextEditingController _productIdController = TextEditingController();
@@ -41,9 +41,9 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                 decoration: const InputDecoration(labelText: 'Description'),
               ),
               TextField(
-                controller: _priceController,
+                controller: _rateController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Price'),
+                decoration: const InputDecoration(labelText: 'rate'),
               ),
               TextField(
                 controller: _quantityController,
@@ -82,7 +82,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
   void _addProduct(BuildContext context) async {
     final name = _nameController.text;
     final description = _descriptionController.text;
-    final price = double.parse(_priceController.text);
+    final rate = double.parse(_rateController.text);
     final quantity = int.parse(_quantityController.text);
     final vendorId = int.parse(_vendorIdController.text);
 
@@ -91,7 +91,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
     final body = jsonEncode({
       'name': name,
       'description': description,
-      'price': price,
+      'rate': rate,
       'quantity': quantity,
       'vendor_id': vendorId,
     });
@@ -138,7 +138,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
         return AlertDialog(
           title: const Text('Product Details'),
           content: Text(
-              'Product ID: ${productData['product_id']}\nName: ${productData['name']}\nDescription: ${productData['description']}\nPrice: ${productData['price']}\nQuantity: ${productData['quantity']}\nVendor ID: ${productData['vendor_id']}'),
+              'Product ID: ${productData['product_id']}\nName: ${productData['name']}\nDescription: ${productData['description']}\nrate: ${productData['rate']}\nQuantity: ${productData['quantity']}\nVendor ID: ${productData['vendor_id']}'),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -192,7 +192,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
   void _clearTextFields() {
     _nameController.clear();
     _descriptionController.clear();
-    _priceController.clear();
+    _rateController.clear();
     _quantityController.clear();
     _vendorIdController.clear();
     _productIdController.clear();

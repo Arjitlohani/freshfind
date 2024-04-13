@@ -16,7 +16,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
   File? _imageFile; // Declare _imageFile as nullable File variable
   TextEditingController _nameController = TextEditingController();
   TextEditingController _descriptionController = TextEditingController();
-  TextEditingController _priceController = TextEditingController();
+  TextEditingController _rateController = TextEditingController();
   TextEditingController _quantityController = TextEditingController();
   TextEditingController _vendorIdController = TextEditingController();
   TextEditingController _productIdController = TextEditingController();
@@ -71,9 +71,9 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                 decoration: InputDecoration(labelText: 'Description'),
               ),
               TextField(
-                controller: _priceController,
+                controller: _rateController,
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: 'Price'),
+                decoration: InputDecoration(labelText: 'rate'),
               ),
               TextField(
                 controller: _quantityController,
@@ -155,7 +155,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                       DataColumn(label: Text('Product ID')),
                       DataColumn(label: Text('Name')),
                       DataColumn(label: Text('Description')),
-                      DataColumn(label: Text('Price')),
+                      DataColumn(label: Text('rate')),
                       DataColumn(label: Text('Quantity')),
                       DataColumn(label: Text('Vendor ID')),
                       DataColumn(label: Text('Category ID')),
@@ -168,7 +168,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                           DataCell(Text('${product['product_id']}')),
                           DataCell(Text('${product['name']}')),
                           DataCell(Text('${product['description']}')),
-                          DataCell(Text('${product['price']}')),
+                          DataCell(Text('${product['rate']}')),
                           DataCell(Text('${product['quantity']}')),
                           DataCell(Text('${product['vendor_id']}')),
                           DataCell(Text('${product['category_id']}')),
@@ -233,7 +233,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
     // Validate input fields and image selection
     if (_nameController.text.isEmpty ||
         _descriptionController.text.isEmpty ||
-        _priceController.text.isEmpty ||
+        _rateController.text.isEmpty ||
         _quantityController.text.isEmpty ||
         _vendorIdController.text.isEmpty ||
         _selectedCategory == null) {
@@ -243,7 +243,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
     try {
       final name = _nameController.text;
       final description = _descriptionController.text;
-      final price = double.parse(_priceController.text);
+      final rate = double.parse(_rateController.text);
       final quantity = int.parse(_quantityController.text);
       final vendorId = int.parse(_vendorIdController.text);
       final category = _selectedCategory;
@@ -253,7 +253,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
       final body = jsonEncode({
         'name': name,
         'description': description,
-        'price': price,
+        'rate': rate,
         'quantity': quantity,
         'vendor_id': vendorId,
         'category_id': categoryId,
@@ -379,7 +379,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
   void _clearTextFields() {
     _nameController.clear();
     _descriptionController.clear();
-    _priceController.clear();
+    _rateController.clear();
     _quantityController.clear();
     _vendorIdController.clear();
     _productIdController.clear();
@@ -452,12 +452,12 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
                 ),
                 TextField(
                   controller:
-                      TextEditingController(text: product['price'].toString()),
+                      TextEditingController(text: product['rate'].toString()),
                   onChanged: (value) {
-                    product['price'] = double.parse(value);
+                    product['rate'] = double.parse(value);
                   },
                   keyboardType: TextInputType.number,
-                  decoration: InputDecoration(labelText: 'Price'),
+                  decoration: InputDecoration(labelText: 'rate'),
                 ),
                 TextField(
                   controller: TextEditingController(
@@ -493,7 +493,7 @@ class _ProductManagementScreenState extends State<ProductManagementScreen> {
       final body = jsonEncode({
         'name': product['name'],
         'description': product['description'],
-        'price': product['price'],
+        'rate': product['rate'],
         'quantity': product['quantity'],
         'category_id': product['category_id'],
       });
