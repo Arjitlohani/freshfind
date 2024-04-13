@@ -49,7 +49,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
       _cartItems.add({
         'name': product['name'],
         'description': product['description'],
-        'price': product['price'],
+        'rate': product['rate'],
         'image_url': product['image_url'], // Add image URL
       });
     });
@@ -185,7 +185,7 @@ class ProductCard extends StatelessWidget {
                 ),
                 SizedBox(height: 3),
                 Text(
-                  '\RS.${product['price'] ?? ''}',
+                  '\RS.${product['rate'] ?? ''}',
                   style: TextStyle(
                     color: Colors.green,
                     fontWeight: FontWeight.bold,

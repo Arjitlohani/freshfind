@@ -272,17 +272,17 @@ app.get('/products', (req, res) => {
 
 // Endpoint to add a new product
 app.post('/products', (req, res) => {
-    const { name, description, price, quantity, vendor_id, category_id } = req.body;
+    const { name, description, rate, quantity, vendor_id, category_id } = req.body;
 
     // Check if all required fields are provided
-    if (!name || !description || !price || !quantity || !vendor_id || !category_id) {
+    if (!name || !description || !rate || !quantity || !vendor_id || !category_id) {
         return res.status(400).json({ message: 'All fields are required' });
     }
 
     // Insert the new product into the database
-    const query = 'INSERT INTO Products (name, description, price, quantity, vendor_id, category_id) VALUES (?, ?, ?, ?, ?, ?)';
+    const query = 'INSERT INTO Products (name, description, rate, quantity, vendor_id, category_id) VALUES (?, ?, ?, ?, ?, ?)';
     
-    connection.query(query, [name, description, price, quantity, vendor_id, category_id], (error, results) => {
+    connection.query(query, [name, description, rate, quantity, vendor_id, category_id], (error, results) => {
         if (error) {
             console.error('Error adding product:', error);
             return res.status(500).json({ message: 'Internal server error' });
@@ -342,7 +342,7 @@ app.get('/products/:id', (req, res) => {
 //     const productId = req.params.id;
 
 //     // Extract updated product details from the request body
-//     const { name, description, price, quantity,  category_id } = req.body;
+//     const { name, description, rate, quantity,  category_id } = req.body;
 
 //     // If a new image was uploaded, update the image URL in the images table 
 //     if (req.file) {
@@ -358,8 +358,8 @@ app.get('/products/:id', (req, res) => {
 //     }
 
 //     // Query to update product details in the products table
-//     const query = 'UPDATE Products SET name = ?, description = ?, price = ?, quantity = ?, category_id = ? WHERE product_id = ?';
-//     connection.query(query, [name, description, price, quantity, productId, category_id], (error, results) => {
+//     const query = 'UPDATE Products SET name = ?, description = ?, rate = ?, quantity = ?, category_id = ? WHERE product_id = ?';
+//     connection.query(query, [name, description, rate, quantity, productId, category_id], (error, results) => {
 
 //         if (error) {
 //             console.error('Error updating product:', error);
@@ -381,11 +381,11 @@ app.put('/products/:id', (req, res) => {
     const productId = req.params.id;
 
     // Extract updated product details from the request body
-    const { name, description, price, quantity, category_id } = req.body;
+    const { name, description, rate, quantity, category_id } = req.body;
 
     // Query to update product details in the database
-    const query = 'UPDATE Products SET name = ?, description = ?, price = ?, quantity = ?,category_id = ? WHERE product_id = ?';
-    connection.query(query, [name, description, price, quantity, category_id, productId], (error, results) => {
+    const query = 'UPDATE Products SET name = ?, description = ?, rate = ?, quantity = ?,category_id = ? WHERE product_id = ?';
+    connection.query(query, [name, description, rate, quantity, category_id, productId], (error, results) => {
         if (error) {
             console.error('Error updating product:', error);
             return res.status(500).json({ message: 'Internal server error' });

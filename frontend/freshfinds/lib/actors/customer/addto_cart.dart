@@ -13,6 +13,23 @@ class CartPage extends StatefulWidget {
 
 class _CartPageState extends State<CartPage> {
   int _selectedIndex = 0;
+  double _totalPrice = 0.0;
+
+  void _updateTotalPrice() {
+    double total = 0.0;
+    for (var item in widget.cartItems) {
+      total += (item['rate'] ?? 0) * (item['quantity'] ?? 1);
+    }
+    setState(() {
+      _totalPrice = total;
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _updateTotalPrice(); // Calculate the initial total price
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +43,7 @@ class _CartPageState extends State<CartPage> {
           return CartItem(
             item: widget.cartItems[index],
             onDelete: _deleteItem,
+            updateTotalPrice: _updateTotalPrice,
           );
         },
       ),
@@ -50,17 +68,28 @@ class _CartPageState extends State<CartPage> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          //  order logic
-        },
-        label: Text(
-          'Place Order',
-          style: TextStyle(color: Colors.white),
-        ),
-
-        backgroundColor:
-            Color.fromARGB(216, 107, 231, 111), // Green background color
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Text(
+            'Total: Rs. ${_totalPrice.toStringAsFixed(2)}',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          SizedBox(height: 10),
+          FloatingActionButton.extended(
+            onPressed: () {
+              //  order logic
+            },
+            label: Text(
+              'Place Order',
+              style: TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Color.fromARGB(216, 107, 231, 111),
+          ),
+        ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
@@ -77,8 +106,6 @@ class _CartPageState extends State<CartPage> {
             MaterialPageRoute(builder: (context) => DashboardScreen()));
         break;
       case 2:
-        // Navigate to profile page
-        // Replace 'ProfileScreen()' with your actual profile page widget
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => ProfileScreen()),
@@ -90,22 +117,10 @@ class _CartPageState extends State<CartPage> {
   }
 
   void _deleteItem(Map<String, dynamic> item) {
-    // Remove the item from the cartItems list
     widget.cartItems.remove(item);
-    // Trigger a rebuild to reflect the updated cart items
+    _updateTotalPrice(); // Update the total price after deleting an item
     setState(() {});
   }
-}
-
-class CartItem extends StatefulWidget {
-  final Map<String, dynamic> item;
-  final Function(Map<String, dynamic>) onDelete;
-
-  const CartItem({required this.item, required this.onDelete, Key? key})
-      : super(key: key);
-
-  @override
-  _CartItemState createState() => _CartItemState();
 }
 
 class _CartItemState extends State<CartItem> {
@@ -114,6 +129,8 @@ class _CartItemState extends State<CartItem> {
   void _incrementQuantity() {
     setState(() {
       _quantity++;
+      widget.item['quantity'] = _quantity;
+      widget.updateTotalPrice();
     });
   }
 
@@ -121,6 +138,8 @@ class _CartItemState extends State<CartItem> {
     if (_quantity > 1) {
       setState(() {
         _quantity--;
+        widget.item['quantity'] = _quantity;
+        widget.updateTotalPrice();
       });
     }
   }
@@ -148,7 +167,7 @@ class _CartItemState extends State<CartItem> {
         children: [
           Text(widget.item['description'] ?? ''),
           Text(
-            'Rs. ${widget.item['price'] ?? ''}',
+            'Rs. ${widget.item['rate'] ?? ''}',
             style: TextStyle(
               color: Colors.green,
             ),
@@ -188,4 +207,20 @@ class _CartItemState extends State<CartItem> {
       ),
     );
   }
+}
+
+class CartItem extends StatefulWidget {
+  final Map<String, dynamic> item;
+  final Function(Map<String, dynamic>) onDelete;
+  final VoidCallback updateTotalPrice;
+
+  const CartItem({
+    required this.item,
+    required this.onDelete,
+    required this.updateTotalPrice,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  _CartItemState createState() => _CartItemState();
 }
