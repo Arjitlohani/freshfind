@@ -6,6 +6,10 @@ import 'package:freshfinds/api/api.dart';
 import 'package:http/http.dart' as http;
 
 class ProfileScreen extends StatefulWidget {
+  final int userId; // Receive userId as a parameter
+
+  ProfileScreen({required this.userId, Key? key}) : super(key: key);
+
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 }
@@ -14,47 +18,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // Define variables to store user data
   String _name = '';
   String _email = '';
-  String _password = '';
-  int _selectedIndex = 0;
+  int _selectedIndex = 2; // Set the default index to 2 for Profile
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-    // Navigate to the appropriate page based on the tapped index
-    switch (index) {
-      case 0:
-        // Navigate to home page
-        // Replace 'HomePage()' with your actual home page widget
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => DashboardScreen()),
-        );
-        break;
-      case 1:
-        // Navigate to cart page with dummy product data
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CartPage(
-              cartItems: [],
-            ),
-          ),
-        );
-        break;
-
-      case 2:
-        break;
-      default:
-        break;
-    }
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserData();
   }
 
   // Method to fetch user data from the backend
   Future<void> _fetchUserData() async {
-    // Implement API call to fetch user data
-    // Replace the URL with your actual endpoint
-    final url = Uri.parse('http://$ipAddress:$port/user/profile');
+    final url = Uri.parse('http://$ipAddress:$port/users/${widget.userId}');
 
     try {
       final response = await http.get(url);
@@ -64,7 +38,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
         // Extract user data from response
         setState(() {
-          _name = responseData['name'];
+          _name = responseData['user_name'];
           _email = responseData['email'];
           // You might want to handle password separately based on your requirements
         });
@@ -74,12 +48,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (e) {
       print('Error fetching user data: $e');
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchUserData();
   }
 
   @override
@@ -117,21 +85,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
             ),
 
-            // Change Password Form
-            TextFormField(
-              decoration: InputDecoration(labelText: 'Current Password'),
-              obscureText: true,
-              onChanged: (value) {
-                setState(() {
-                  _password = value;
-                });
-              },
-            ),
-            TextFormField(
-              decoration: InputDecoration(labelText: 'New Password'),
-              obscureText: true,
-            ),
-
             // Update Profile Button
             ElevatedButton(
               onPressed: () {
@@ -139,21 +92,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               },
               child: Text('Update Profile'),
             ),
-
-            // Change Password Button
-            ElevatedButton(
-              onPressed: () {
-                _changePassword();
-              },
-              child: Text('Change Password'),
-            ),
           ],
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.lightGreen, // Light green background color
-        selectedItemColor: Colors.white, // Color of selected item
-        unselectedItemColor: Colors.grey, // Color of unselected items
+        backgroundColor: Colors.lightGreen,
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.grey,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         items: const <BottomNavigationBarItem>[
@@ -174,15 +119,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    // Navigate to the appropriate page based on the tapped index
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => DashboardScreen()),
+        );
+        break;
+      case 1:
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                CartPage(cartItems: [], userId: widget.userId),
+          ),
+        );
+        break;
+      case 2:
+        // Navigate to profile page with userId
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProfileScreen(userId: widget.userId),
+          ),
+        );
+        break;
+      default:
+        break;
+    }
+  }
+
   // Method to update user profile
   void _updateProfile() {
     // Implement API call to update user profile
     // You'll need to send the updated _name and _email to the backend
-  }
-
-  // Method to change user password
-  void _changePassword() {
-    // Implement API call to change user password
-    // You'll need to send the current password and new password to the backend
   }
 }

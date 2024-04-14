@@ -4,15 +4,17 @@ import 'package:freshfinds/actors/profile.dart';
 
 class CartPage extends StatefulWidget {
   final List<Map<String, dynamic>> cartItems;
+  final int userId; // Add this line to accept userId
 
-  const CartPage({required this.cartItems, Key? key}) : super(key: key);
+  const CartPage({required this.cartItems, required this.userId, Key? key})
+      : super(key: key);
 
   @override
   _CartPageState createState() => _CartPageState();
 }
 
 class _CartPageState extends State<CartPage> {
-  int _selectedIndex = 0;
+  int _selectedIndex = 1;
   double _totalPrice = 0.0;
 
   void _updateTotalPrice() {
@@ -108,7 +110,8 @@ class _CartPageState extends State<CartPage> {
       case 2:
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ProfileScreen()),
+          MaterialPageRoute(
+              builder: (context) => ProfileScreen(userId: widget.userId)),
         );
         break;
       default:
