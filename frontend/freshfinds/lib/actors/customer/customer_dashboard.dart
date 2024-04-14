@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:freshfinds/actors/customer/addto_cart.dart';
 import 'package:freshfinds/actors/customer/product_screen.dart';
 import 'package:freshfinds/actors/profile.dart';
-import 'package:freshfinds/api/api.dart';
+import 'package:freshfinds/models/port.dart';
+import 'package:freshfinds/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -22,9 +24,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    final Map<String, dynamic>? args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    userId = args?['userId'] ?? 0;
+    final userProvider = Provider.of<UserProvider>(context);
+    userId = userProvider.userId; // Assign to class-level variable
     _fetchVendors();
   }
 
@@ -32,9 +33,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Welcome $userId',
-          style: TextStyle(color: Colors.white),
+        title: Consumer<UserProvider>(
+          builder: (context, userProvider, child) {
+            return Text(
+              'Welcome ${userProvider.userId}',
+              style: TextStyle(color: Colors.white),
+            );
+          },
         ),
         backgroundColor: const Color.fromARGB(255, 54, 99, 56),
         actions: [
@@ -84,8 +89,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.lightGreen,
-        selectedItemColor: Colors.grey,
-        unselectedItemColor: Colors.white,
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.grey,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         items: const <BottomNavigationBarItem>[
@@ -113,22 +118,21 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Navigate to the appropriate page based on the tapped index
     switch (index) {
       case 0:
-        Navigator.pushReplacementNamed(
+        Navigator.pushReplacement(
           context,
-          '/customerDashboard',
-          arguments: {'userId': userId},
+          MaterialPageRoute(
+            builder: (context) => DashboardScreen(),
+            settings: RouteSettings(arguments: {'userId': userId}),
+          ),
         );
         break;
       case 1:
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => CartPage(
-                    cartItems: [],
-                    userId: userId,
-                  )),
+            builder: (context) => CartPage(cartItems: [], userId: userId),
+          ),
         );
-        break;
       case 2:
         Navigator.push(
           context,
@@ -161,6 +165,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _logout(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    userProvider.user = null; // Clear the user
     Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
 }

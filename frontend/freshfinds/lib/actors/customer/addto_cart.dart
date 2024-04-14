@@ -37,7 +37,7 @@ class _CartPageState extends State<CartPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Cart'),
+        title: Text('Cart - Welcome ${widget.userId}'),
       ),
       body: ListView.builder(
         itemCount: widget.cartItems.length,
@@ -104,14 +104,29 @@ class _CartPageState extends State<CartPage> {
     // Navigate to the appropriate page based on the tapped index
     switch (index) {
       case 0:
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => DashboardScreen()));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DashboardScreen(),
+            settings: RouteSettings(arguments: {'userId': widget.userId}),
+          ),
+        );
         break;
-      case 2:
+      case 1:
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => ProfileScreen(userId: widget.userId)),
+            builder: (context) =>
+                CartPage(cartItems: [], userId: widget.userId),
+          ),
+        );
+        break;
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProfileScreen(userId: widget.userId),
+          ),
         );
         break;
       default:

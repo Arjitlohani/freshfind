@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:freshfinds/actors/customer/addto_cart.dart';
 import 'package:freshfinds/actors/customer/customer_dashboard.dart';
-import 'package:freshfinds/api/api.dart';
+import 'package:freshfinds/models/port.dart';
 import 'package:http/http.dart' as http;
 
 class ProfileScreen extends StatefulWidget {
@@ -54,7 +54,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Profile'),
+        title: Text('Profile - Welcome ${widget.userId}'),
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16.0),

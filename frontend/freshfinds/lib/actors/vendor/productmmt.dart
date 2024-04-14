@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:freshfinds/api/api.dart';
+import 'package:freshfinds/models/port.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart'; // Import http_parser.dart for MediaType
 import 'package:image_picker/image_picker.dart';

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:freshfinds/models/user.dart';
+import 'package:freshfinds/providers/user_provider.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 import 'dart:convert';
-import '../api/api.dart';
+import '../models/port.dart';
 
 class LoginPage extends StatefulWidget {
   LoginPage({Key? key}) : super(key: key);
@@ -43,6 +46,18 @@ class _LoginPageState extends State<LoginPage> {
             responseData.containsKey('user_id')) {
           final int roleId = responseData['role'];
           final int userId = responseData['user_id'];
+
+          // Set the user ID in UserProvider
+          final userProvider =
+              Provider.of<UserProvider>(context, listen: false);
+          userProvider.user = User(userId: userId);
+
+          // Show login successful message
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('Login successful'),
+                backgroundColor: Color.fromARGB(166, 3, 95, 6)),
+          );
 
           print('Role ID: $roleId, User ID: $userId');
           _navigateToDashboard(context, roleId, userId);

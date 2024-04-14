@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-
+import 'package:provider/provider.dart';
+import 'providers/user_provider.dart';
 import 'actors/customer/customer_dashboard.dart';
 import 'actors/vendor/vendor_dashboard.dart';
 
@@ -8,7 +9,12 @@ import 'screens/signup_page.dart';
 import 'actors/admin/admin_dashboard.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => UserProvider(),
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
