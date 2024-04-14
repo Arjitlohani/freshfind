@@ -5,6 +5,7 @@ import 'package:freshfinds/actors/customer/product_screen.dart';
 import 'package:freshfinds/actors/profile.dart';
 import 'package:freshfinds/api/api.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DashboardScreen extends StatefulWidget {
   @override
@@ -14,6 +15,7 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   List<Map<String, dynamic>> _vendors = [];
   int _selectedIndex = 0;
+  int? _userId;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -39,7 +41,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         // Replace 'ProfileScreen()' with your actual profile page widget
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ProfileScreen()),
+          MaterialPageRoute(
+              builder: (context) => ProfileScreen(userId: _userId)),
         );
         break;
       default:
@@ -51,6 +54,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void initState() {
     super.initState();
     _fetchVendors();
+    _fetchUserId();
+  }
+
+  Future<void> _fetchUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    try {
+      final userId = prefs.getInt('user_id');
+
+      if (userId != null) {
+        setState(() {
+          _userId = userId;
+        });
+      } else {
+        print('User ID not found in storage');
+      }
+    } catch (e) {
+      print('Error fetching user ID: $e');
+    }
   }
 
   Future<void> _fetchVendors() async {

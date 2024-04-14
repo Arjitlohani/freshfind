@@ -31,39 +31,34 @@ class _LoginPageState extends State<LoginPage> {
         body: jsonEncode(body),
       );
 
-      if (response.statusCode == 200) {
-        // Print the response body to debug
-        print(response.body);
+      print('Response Status Code: ${response.statusCode}');
+      print('Response Body: ${response.body}');
 
+      if (response.statusCode == 200) {
         // Decode the response JSON
         final Map<String, dynamic> responseData = jsonDecode(response.body);
 
-        // Check if the response contains the 'role_id' field
-        if (responseData.containsKey('role')) {
-          // Extract the roleId from the response data
+        if (responseData.containsKey('role') &&
+            responseData.containsKey('user_id')) {
           final int roleId = responseData['role'];
-
-          // Show login successful message
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Login successful')),
-          );
-
-          // Navigate to the appropriate dashboard based on roleId
-          _navigateToDashboard(context, roleId);
+          final int userId = responseData['user_id'];
+          print('Role ID: $roleId, User ID: $userId');
+          _navigateToDashboard(context, roleId, userId);
         } else {
-          // Show error message if 'role_id' field is missing
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Role ID not found in response')),
+            const SnackBar(
+                content: Text('Role ID or User ID not found in response')),
           );
         }
       } else {
-        // Show error message if response status code is not 200
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Login failed')),
+          const SnackBar(
+            content: Text('Login failed'),
+            backgroundColor: Color.fromARGB(149, 238, 29, 15),
+          ),
         );
       }
     } catch (e) {
-      // Handle exceptions
       print('Error during login: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -72,7 +67,7 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  void _navigateToDashboard(BuildContext context, int roleId) {
+  void _navigateToDashboard(BuildContext context, int roleId, int userId) {
     switch (roleId) {
       case 1:
         Navigator.pushNamed(context, '/adminDashboard');
@@ -81,13 +76,22 @@ class _LoginPageState extends State<LoginPage> {
         Navigator.pushNamed(context, '/vendorDashboard');
         break;
       case 3:
-        Navigator.pushNamed(context, '/customerDashboard');
+        Navigator.pushNamed(
+          context,
+          '/customerDashboard',
+          arguments: {'userId': userId},
+        );
         break;
       case 4:
         Navigator.pushNamed(context, '/driverDashboard');
         break;
       default:
-        // Handle unknown roleId or unexpected data
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Login failed role not found'),
+            backgroundColor: Color.fromARGB(149, 238, 29, 15),
+          ),
+        );
         break;
     }
   }
@@ -107,11 +111,9 @@ class _LoginPageState extends State<LoginPage> {
                 decoration: const InputDecoration(labelText: 'Email'),
               ),
               const SizedBox(height: 16), // Add some spacing between fields
-              const SizedBox(height: 16), // Add some spacing between fields
               TextFormField(
                 controller: passwordController,
-                obscureText:
-                    !_showPassword, // Show/hide password based on _showPassword
+                obscureText: !_showPassword,
                 decoration: InputDecoration(
                   labelText: 'Password',
                   suffixIcon: IconButton(
@@ -120,7 +122,7 @@ class _LoginPageState extends State<LoginPage> {
                         : Icons.visibility_off),
                     onPressed: () {
                       setState(() {
-                        _showPassword = !_showPassword; // Toggle _showPassword
+                        _showPassword = !_showPassword;
                       });
                     },
                   ),

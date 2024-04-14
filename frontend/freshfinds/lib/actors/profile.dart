@@ -6,68 +6,55 @@ import 'package:freshfinds/api/api.dart';
 import 'package:http/http.dart' as http;
 
 class ProfileScreen extends StatefulWidget {
+  final int? userId;
+
+  const ProfileScreen({Key? key, this.userId}) : super(key: key);
+
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Define variables to store user data
   String _name = '';
   String _email = '';
-  String _password = '';
+  String _phone = '';
+  String _address = '';
+  bool _isEditing = false;
   int _selectedIndex = 0;
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-    // Navigate to the appropriate page based on the tapped index
-    switch (index) {
-      case 0:
-        // Navigate to home page
-        // Replace 'HomePage()' with your actual home page widget
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => DashboardScreen()),
-        );
-        break;
-      case 1:
-        // Navigate to cart page with dummy product data
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CartPage(
-              cartItems: [],
-            ),
-          ),
-        );
-        break;
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
 
-      case 2:
-        break;
-      default:
-        break;
-    }
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserData();
   }
 
-  // Method to fetch user data from the backend
   Future<void> _fetchUserData() async {
-    // Implement API call to fetch user data
-    // Replace the URL with your actual endpoint
-    final url = Uri.parse('http://$ipAddress:$port/user/profile');
+    final url = Uri.parse('http://$ipAddress:$port/users/${widget.userId}');
 
     try {
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-
-        // Extract user data from response
-        setState(() {
-          _name = responseData['name'];
-          _email = responseData['email'];
-          // You might want to handle password separately based on your requirements
-        });
+        if (responseData.isNotEmpty) {
+          setState(() {
+            _name = responseData['user_name'];
+            _email = responseData['email'];
+            _phone = responseData['phone_number'];
+            _address = responseData['address'];
+            _nameController.text = _name;
+            _emailController.text = _email;
+            _phoneController.text = _phone;
+            _addressController.text = _address;
+          });
+        } else {
+          print('No user data found');
+        }
       } else {
         throw Exception('Failed to load user data: ${response.statusCode}');
       }
@@ -77,9 +64,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    _fetchUserData();
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    super.dispose();
   }
 
   @override
@@ -93,67 +83,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Profile Picture Section
-            // Add your profile picture widget here
-            // You can use a CircleAvatar or any other widget to display the profile picture
-
-            // User Information Form
             TextFormField(
-              initialValue: _name,
+              controller: _nameController,
               decoration: InputDecoration(labelText: 'Name'),
-              onChanged: (value) {
-                setState(() {
-                  _name = value;
-                });
-              },
+              enabled: _isEditing,
             ),
             TextFormField(
-              initialValue: _email,
+              controller: _emailController,
               decoration: InputDecoration(labelText: 'Email'),
-              onChanged: (value) {
-                setState(() {
-                  _email = value;
-                });
-              },
-            ),
-
-            // Change Password Form
-            TextFormField(
-              decoration: InputDecoration(labelText: 'Current Password'),
-              obscureText: true,
-              onChanged: (value) {
-                setState(() {
-                  _password = value;
-                });
-              },
+              enabled: _isEditing,
             ),
             TextFormField(
-              decoration: InputDecoration(labelText: 'New Password'),
-              obscureText: true,
+              controller: _phoneController,
+              decoration: InputDecoration(labelText: 'Phone Number'),
+              enabled: _isEditing,
             ),
-
-            // Update Profile Button
-            ElevatedButton(
-              onPressed: () {
-                _updateProfile();
-              },
-              child: Text('Update Profile'),
+            TextFormField(
+              controller: _addressController,
+              decoration: InputDecoration(labelText: 'Address'),
+              enabled: _isEditing,
             ),
-
-            // Change Password Button
             ElevatedButton(
-              onPressed: () {
-                _changePassword();
-              },
-              child: Text('Change Password'),
+              onPressed: _isEditing
+                  ? _saveProfile
+                  : () {
+                      setState(() {
+                        _isEditing = !_isEditing;
+                      });
+                    },
+              child: Text(_isEditing ? 'Save Profile' : 'Edit Profile'),
             ),
           ],
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.lightGreen, // Light green background color
-        selectedItemColor: Colors.white, // Color of selected item
-        unselectedItemColor: Colors.grey, // Color of unselected items
+        backgroundColor: Colors.lightGreen,
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.grey,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         items: const <BottomNavigationBarItem>[
@@ -174,15 +140,70 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Method to update user profile
-  void _updateProfile() {
-    // Implement API call to update user profile
-    // You'll need to send the updated _name and _email to the backend
+  void _saveProfile() async {
+    final url =
+        Uri.parse('http://$ipAddress:$port/users/update/${widget.userId}');
+    final Map<String, String> body = {
+      'user_name': _nameController.text,
+      'email': _emailController.text,
+      'phone_number': _phoneController.text,
+      'address': _addressController.text,
+    };
+
+    try {
+      final response = await http.put(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          _name = _nameController.text;
+          _email = _emailController.text;
+          _phone = _phoneController.text;
+          _address = _addressController.text;
+          _isEditing = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Profile updated successfully')));
+      } else {
+        throw Exception('Failed to update profile: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error updating profile: $e');
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Failed to update profile')));
+    }
   }
 
-  // Method to change user password
-  void _changePassword() {
-    // Implement API call to change user password
-    // You'll need to send the current password and new password to the backend
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    switch (index) {
+      case 0:
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => DashboardScreen()));
+        break;
+      case 1:
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const CartPage(
+                    cartItems: [],
+                  )),
+        );
+        break;
+      case 2:
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => ProfileScreen(userId: widget.userId)),
+        );
+        break;
+      default:
+        break;
+    }
   }
 }
