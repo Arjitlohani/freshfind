@@ -1,23 +1,21 @@
-import 'dart:convert';
-import 'package:freshfinds/api/api.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:freshfinds/actors/customer/customer_dashboard.dart';
 import 'package:freshfinds/actors/profile.dart';
 
 class CartPage extends StatefulWidget {
   final List<Map<String, dynamic>> cartItems;
+  final int userId; // Add this line to accept userId
 
-  const CartPage({required this.cartItems, Key? key}) : super(key: key);
+  const CartPage({required this.cartItems, required this.userId, Key? key})
+      : super(key: key);
 
   @override
   _CartPageState createState() => _CartPageState();
 }
 
 class _CartPageState extends State<CartPage> {
-  int _selectedIndex = 0;
+  int _selectedIndex = 1;
   double _totalPrice = 0.0;
-  String? loginId; // Placeholder for logged-in user's ID
 
   void _updateTotalPrice() {
     double total = 0.0;
@@ -27,76 +25,6 @@ class _CartPageState extends State<CartPage> {
     setState(() {
       _totalPrice = total;
     });
-  }
-
-  void _placeOrder() async {
-    // Check if loginId is null before placing the order
-    if (loginId == null) {
-      // Handle the case when the user is not logged in
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Please log in to place an order.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    // Construct the order object
-    Map<String, dynamic> order = {
-      'customer_id': loginId, // Use loginId here
-      'total_price': _totalPrice,
-      'order_status': 'pending',
-      'order_items': widget.cartItems.map((item) {
-        return {
-          'product_id': item['product_id'],
-          'quantity': item['quantity'],
-          'rate': item['rate'],
-        };
-      }).toList(),
-    };
-
-    // Send a POST request to the backend API endpoint
-    try {
-      final response = await http.post(
-        Uri.parse('http://$ipAddress:$port/orders'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-        },
-        body: jsonEncode(order),
-      );
-
-      if (response.statusCode == 200) {
-        // Order placed successfully
-        // Clear the cart after placing the order
-        widget.cartItems.clear();
-        _updateTotalPrice();
-        setState(() {});
-        // Show a success message to the user
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Order placed successfully.'),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        // Failed to place order
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to place order. Please try again.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      // Exception occurred while placing order
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('An error occurred. Please try again later.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
   }
 
   @override
@@ -154,7 +82,9 @@ class _CartPageState extends State<CartPage> {
           ),
           SizedBox(height: 10),
           FloatingActionButton.extended(
-            onPressed: _placeOrder,
+            onPressed: () {
+              //  order logic
+            },
             label: Text(
               'Place Order',
               style: TextStyle(color: Colors.white),
@@ -180,7 +110,8 @@ class _CartPageState extends State<CartPage> {
       case 2:
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => ProfileScreen()),
+          MaterialPageRoute(
+              builder: (context) => ProfileScreen(userId: widget.userId)),
         );
         break;
       default:

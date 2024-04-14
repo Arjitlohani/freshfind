@@ -6,26 +6,19 @@ import 'package:freshfinds/api/api.dart';
 import 'package:http/http.dart' as http;
 
 class ProfileScreen extends StatefulWidget {
-  final int? userId;
+  final int userId; // Receive userId as a parameter
 
-  const ProfileScreen({Key? key, this.userId}) : super(key: key);
+  ProfileScreen({required this.userId, Key? key}) : super(key: key);
 
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  // Define variables to store user data
   String _name = '';
   String _email = '';
-  String _phone = '';
-  String _address = '';
-  bool _isEditing = false;
-  int _selectedIndex = 0;
-
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
+  int _selectedIndex = 2; // Set the default index to 2 for Profile
 
   @override
   void initState() {
@@ -33,6 +26,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _fetchUserData();
   }
 
+  // Method to fetch user data from the backend
   Future<void> _fetchUserData() async {
     final url = Uri.parse('http://$ipAddress:$port/users/${widget.userId}');
 
@@ -41,35 +35,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        if (responseData.isNotEmpty) {
-          setState(() {
-            _name = responseData['user_name'];
-            _email = responseData['email'];
-            _phone = responseData['phone_number'];
-            _address = responseData['address'];
-            _nameController.text = _name;
-            _emailController.text = _email;
-            _phoneController.text = _phone;
-            _addressController.text = _address;
-          });
-        } else {
-          print('No user data found');
-        }
+
+        // Extract user data from response
+        setState(() {
+          _name = responseData['user_name'];
+          _email = responseData['email'];
+          // You might want to handle password separately based on your requirements
+        });
       } else {
         throw Exception('Failed to load user data: ${response.statusCode}');
       }
     } catch (e) {
       print('Error fetching user data: $e');
     }
-  }
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _emailController.dispose();
-    _phoneController.dispose();
-    _addressController.dispose();
-    super.dispose();
   }
 
   @override
@@ -83,35 +61,36 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Profile Picture Section
+            // Add your profile picture widget here
+            // You can use a CircleAvatar or any other widget to display the profile picture
+
+            // User Information Form
             TextFormField(
-              controller: _nameController,
+              initialValue: _name,
               decoration: InputDecoration(labelText: 'Name'),
-              enabled: _isEditing,
+              onChanged: (value) {
+                setState(() {
+                  _name = value;
+                });
+              },
             ),
             TextFormField(
-              controller: _emailController,
+              initialValue: _email,
               decoration: InputDecoration(labelText: 'Email'),
-              enabled: _isEditing,
+              onChanged: (value) {
+                setState(() {
+                  _email = value;
+                });
+              },
             ),
-            TextFormField(
-              controller: _phoneController,
-              decoration: InputDecoration(labelText: 'Phone Number'),
-              enabled: _isEditing,
-            ),
-            TextFormField(
-              controller: _addressController,
-              decoration: InputDecoration(labelText: 'Address'),
-              enabled: _isEditing,
-            ),
+
+            // Update Profile Button
             ElevatedButton(
-              onPressed: _isEditing
-                  ? _saveProfile
-                  : () {
-                      setState(() {
-                        _isEditing = !_isEditing;
-                      });
-                    },
-              child: Text(_isEditing ? 'Save Profile' : 'Edit Profile'),
+              onPressed: () {
+                _updateProfile();
+              },
+              child: Text('Update Profile'),
             ),
           ],
         ),
@@ -140,70 +119,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  void _saveProfile() async {
-    final url =
-        Uri.parse('http://$ipAddress:$port/users/update/${widget.userId}');
-    final Map<String, String> body = {
-      'user_name': _nameController.text,
-      'email': _emailController.text,
-      'phone_number': _phoneController.text,
-      'address': _addressController.text,
-    };
-
-    try {
-      final response = await http.put(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(body),
-      );
-
-      if (response.statusCode == 200) {
-        setState(() {
-          _name = _nameController.text;
-          _email = _emailController.text;
-          _phone = _phoneController.text;
-          _address = _addressController.text;
-          _isEditing = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Profile updated successfully')));
-      } else {
-        throw Exception('Failed to update profile: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error updating profile: $e');
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Failed to update profile')));
-    }
-  }
-
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
+    // Navigate to the appropriate page based on the tapped index
     switch (index) {
       case 0:
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => DashboardScreen()));
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => DashboardScreen()),
+        );
         break;
       case 1:
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => const CartPage(
-                    cartItems: [],
-                  )),
+            builder: (context) =>
+                CartPage(cartItems: [], userId: widget.userId),
+          ),
         );
         break;
       case 2:
-        Navigator.push(
+        // Navigate to profile page with userId
+        Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-              builder: (context) => ProfileScreen(userId: widget.userId)),
+            builder: (context) => ProfileScreen(userId: widget.userId),
+          ),
         );
         break;
       default:
         break;
     }
+  }
+
+  // Method to update user profile
+  void _updateProfile() {
+    // Implement API call to update user profile
+    // You'll need to send the updated _name and _email to the backend
   }
 }

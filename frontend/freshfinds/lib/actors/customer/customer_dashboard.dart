@@ -5,9 +5,10 @@ import 'package:freshfinds/actors/customer/product_screen.dart';
 import 'package:freshfinds/actors/profile.dart';
 import 'package:freshfinds/api/api.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 
 class DashboardScreen extends StatefulWidget {
+  const DashboardScreen({Key? key}) : super(key: key);
+
   @override
   _DashboardScreenState createState() => _DashboardScreenState();
 }
@@ -15,82 +16,16 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   List<Map<String, dynamic>> _vendors = [];
   int _selectedIndex = 0;
-  int? _userId;
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-    // Navigate to the appropriate page based on the tapped index
-    switch (index) {
-      case 0:
-        break;
-      case 1:
-        // Navigate to cart page with dummy product data
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => const CartPage(
-                    cartItems: [],
-                  )),
-        );
-        break;
-      case 2:
-        // Navigate to profile page
-        // Replace 'ProfileScreen()' with your actual profile page widget
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-              builder: (context) => ProfileScreen(userId: _userId)),
-        );
-        break;
-      default:
-        break;
-    }
-  }
+  late int userId;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final Map<String, dynamic>? args =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    userId = args?['userId'] ?? 0;
     _fetchVendors();
-    _fetchUserId();
-  }
-
-  Future<void> _fetchUserId() async {
-    final prefs = await SharedPreferences.getInstance();
-    try {
-      final userId = prefs.getInt('user_id');
-
-      if (userId != null) {
-        setState(() {
-          _userId = userId;
-        });
-      } else {
-        print('User ID not found in storage');
-      }
-    } catch (e) {
-      print('Error fetching user ID: $e');
-    }
-  }
-
-  Future<void> _fetchVendors() async {
-    final url = Uri.parse('http://$ipAddress:$port/vendors');
-
-    try {
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        setState(() {
-          _vendors = List<Map<String, dynamic>>.from(responseData['vendors']);
-        });
-      } else {
-        throw Exception('Failed to load vendors: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error fetching vendors: $e');
-    }
   }
 
   @override
@@ -98,7 +33,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Customer Dashboard',
+          'Welcome $userId',
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: const Color.fromARGB(255, 54, 99, 56),
@@ -135,8 +70,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              ProductsScreen(vendorId: selectedId),
+                          builder: (context) => ProductsScreen(
+                              vendorId: selectedId, userId: userId),
                         ),
                       );
                     }
@@ -148,9 +83,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.lightGreen, // Light green background color
-        selectedItemColor: Colors.grey, // Color of selected item
-        unselectedItemColor: Colors.white, // Color of unselected items
+        backgroundColor: Colors.lightGreen,
+        selectedItemColor: Colors.grey,
+        unselectedItemColor: Colors.white,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         items: const <BottomNavigationBarItem>[
@@ -170,10 +105,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-}
 
-void _logout(BuildContext context) {
-  Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    // Navigate to the appropriate page based on the tapped index
+    switch (index) {
+      case 0:
+        Navigator.pushReplacementNamed(
+          context,
+          '/customerDashboard',
+          arguments: {'userId': userId},
+        );
+        break;
+      case 1:
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => CartPage(
+                    cartItems: [],
+                    userId: userId,
+                  )),
+        );
+        break;
+      case 2:
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => ProfileScreen(userId: userId)),
+        );
+        break;
+      default:
+        break;
+    }
+  }
+
+  Future<void> _fetchVendors() async {
+    final url = Uri.parse('http://$ipAddress:$port/vendors');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        setState(() {
+          _vendors = List<Map<String, dynamic>>.from(responseData['vendors']);
+        });
+      } else {
+        throw Exception('Failed to load vendors: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching vendors: $e');
+    }
+  }
+
+  void _logout(BuildContext context) {
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+  }
 }
 
 class VendorContainer extends StatelessWidget {

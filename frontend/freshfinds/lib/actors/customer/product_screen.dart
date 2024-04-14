@@ -8,8 +8,10 @@ import 'package:http/http.dart' as http;
 
 class ProductsScreen extends StatefulWidget {
   final int vendorId;
+  final int userId;
 
-  const ProductsScreen({required this.vendorId, Key? key}) : super(key: key);
+  const ProductsScreen({required this.vendorId, required this.userId, Key? key})
+      : super(key: key);
 
   @override
   _ProductsScreenState createState() => _ProductsScreenState();
@@ -88,7 +90,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => CartPage(cartItems: _cartItems)),
+                  builder: (context) =>
+                      CartPage(cartItems: _cartItems, userId: widget.userId)),
             );
           } else if (index == 0) {
             Navigator.push(context,
@@ -96,7 +99,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
           } else if (index == 2) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => ProfileScreen()),
+              MaterialPageRoute(
+                  builder: (context) => ProfileScreen(userId: widget.userId)),
             );
           }
         },

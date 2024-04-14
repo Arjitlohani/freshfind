@@ -20,6 +20,9 @@ class _SignupPageState extends State<SignupPage> {
 
   bool _showPassword = false; // Variable to control password visibility
 
+  List<String> _locations = ['Bhaktapur', 'Kathmandu', 'Lalitpur']; // Option 2
+  String? _selectedLocation; // Option 2
+
   Future<void> _signup(BuildContext context) async {
     const String url = 'http://$ipAddress:$port/signup';
     final Map<String, String> headers = {'Content-Type': 'application/json'};
@@ -28,7 +31,7 @@ class _SignupPageState extends State<SignupPage> {
       'email': emailController.text,
       'password': passwordController.text,
       'phone_number': phoneNumberController.text,
-      'address': addressController.text,
+      'address': _selectedLocation ?? '', // Use selected location
     };
 
     // Perform client-side validation
@@ -53,17 +56,13 @@ class _SignupPageState extends State<SignupPage> {
     );
 
     if (response.statusCode == 201) {
-      // Change the status code check to 201
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Signup successful')),
       );
 
-      // Navigate to login screen after successful signup
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-            builder: (context) =>
-                LoginPage()), // Replace LoginPage with your actual login page widget
+        MaterialPageRoute(builder: (context) => LoginPage()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -72,12 +71,10 @@ class _SignupPageState extends State<SignupPage> {
     }
   }
 
-  // Function to validate email format
   bool _isValidEmail(String email) {
     return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
   }
 
-  // Function to validate phone number length
   bool _isValidPhoneNumber(String phoneNumber) {
     return phoneNumber.length == 10;
   }
@@ -103,8 +100,7 @@ class _SignupPageState extends State<SignupPage> {
               ),
               TextFormField(
                 controller: passwordController,
-                obscureText:
-                    !_showPassword, // Show/hide password based on _showPassword
+                obscureText: !_showPassword,
                 decoration: InputDecoration(
                   labelText: 'Password',
                   suffixIcon: IconButton(
@@ -113,7 +109,7 @@ class _SignupPageState extends State<SignupPage> {
                         : Icons.visibility_off),
                     onPressed: () {
                       setState(() {
-                        _showPassword = !_showPassword; // Toggle _showPassword
+                        _showPassword = !_showPassword;
                       });
                     },
                   ),
@@ -123,9 +119,20 @@ class _SignupPageState extends State<SignupPage> {
                 controller: phoneNumberController,
                 decoration: const InputDecoration(labelText: 'Phone Number'),
               ),
-              TextFormField(
-                controller: addressController,
-                decoration: const InputDecoration(labelText: 'Address'),
+              DropdownButton<String>(
+                hint: Text('Select Address'),
+                value: _selectedLocation,
+                onChanged: (newValue) {
+                  setState(() {
+                    _selectedLocation = newValue;
+                  });
+                },
+                items: _locations.map((location) {
+                  return DropdownMenuItem(
+                    child: new Text(location),
+                    value: location,
+                  );
+                }).toList(),
               ),
               ElevatedButton(
                 onPressed: () => _signup(context),

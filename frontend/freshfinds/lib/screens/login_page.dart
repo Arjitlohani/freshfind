@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../api/api.dart';
@@ -42,6 +43,7 @@ class _LoginPageState extends State<LoginPage> {
             responseData.containsKey('user_id')) {
           final int roleId = responseData['role'];
           final int userId = responseData['user_id'];
+
           print('Role ID: $roleId, User ID: $userId');
           _navigateToDashboard(context, roleId, userId);
         } else {
@@ -76,7 +78,7 @@ class _LoginPageState extends State<LoginPage> {
         Navigator.pushNamed(context, '/vendorDashboard');
         break;
       case 3:
-        Navigator.pushNamed(
+        Navigator.pushReplacementNamed(
           context,
           '/customerDashboard',
           arguments: {'userId': userId},
