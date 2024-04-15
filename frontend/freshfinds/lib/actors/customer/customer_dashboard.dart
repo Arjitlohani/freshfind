@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:freshfinds/actors/customer/addto_cart.dart';
 import 'package:freshfinds/actors/customer/product_screen.dart';
 import 'package:freshfinds/actors/profile.dart';
-import 'package:freshfinds/api/api.dart';
+import 'package:freshfinds/models/port.dart';
+import 'package:freshfinds/providers/cart_provider.dart';
+import 'package:freshfinds/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -22,22 +25,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    final Map<String, dynamic>? args =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    userId = args?['userId'] ?? 0;
+    final userProvider = Provider.of<UserProvider>(context);
+    userId = userProvider.userId; // Assign to class-level variable
     _fetchVendors();
   }
 
   @override
   Widget build(BuildContext context) {
+    final cartProvider = Provider.of<CartProvider>(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Welcome $userId',
-          style: TextStyle(color: Colors.white),
+        backgroundColor: const Color.fromARGB(
+            255, 54, 99, 56), // Set background color to green
+        title: Consumer<UserProvider>(
+          builder: (context, userProvider, child) {
+            return Text(
+              'Welcome ${userProvider.userId}',
+              style: TextStyle(color: Colors.white),
+            );
+          },
         ),
-        backgroundColor: const Color.fromARGB(255, 54, 99, 56),
         actions: [
+          // Consumer<CartProvider>(
+          //   builder: (context, cartProvider, child) {
+          //     return Badge(
+          //       badge: Text('${cartProvider.cartItems.length}',
+          //           style: TextStyle(color: Colors.white)),
+          //       child: IconButton(
+          //         icon: const Icon(
+          //           Icons.shopping_cart,
+          //           color: Colors.white,
+          //         ),
+          //         onPressed: () => _onItemTapped(1), // Navigate to cart
+          //       ),
+          //     );
+          //   },
+          // ),
           IconButton(
             icon: const Icon(
               Icons.logout,
@@ -84,8 +107,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.lightGreen,
-        selectedItemColor: Colors.grey,
-        unselectedItemColor: Colors.white,
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.grey,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         items: const <BottomNavigationBarItem>[
@@ -110,30 +133,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() {
       _selectedIndex = index;
     });
+
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+
     // Navigate to the appropriate page based on the tapped index
     switch (index) {
       case 0:
-        Navigator.pushReplacementNamed(
+        Navigator.pushReplacement(
           context,
-          '/customerDashboard',
-          arguments: {'userId': userId},
+          MaterialPageRoute(
+            builder: (context) => DashboardScreen(),
+            settings: RouteSettings(arguments: {'userId': userId}),
+          ),
         );
         break;
       case 1:
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => CartPage(
-                    cartItems: [],
-                    userId: userId,
-                  )),
+            builder: (context) => CartPage(userId: userId),
+          ),
         );
         break;
       case 2:
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => ProfileScreen(userId: userId)),
+              builder: (context) => ProfileScreen(
+                    userId: userId,
+                  )),
         );
         break;
       default:
@@ -161,6 +189,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _logout(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    userProvider.user = null; // Clear the user
     Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
 }

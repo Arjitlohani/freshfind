@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:freshfinds/actors/customer/addto_cart.dart';
 import 'package:freshfinds/actors/customer/customer_dashboard.dart';
 import 'package:freshfinds/actors/profile.dart';
-import 'package:freshfinds/api/api.dart';
+import 'package:freshfinds/models/port.dart';
+import 'package:freshfinds/providers/cart_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 
 class ProductsScreen extends StatefulWidget {
   final int vendorId;
@@ -19,7 +21,8 @@ class ProductsScreen extends StatefulWidget {
 
 class _ProductsScreenState extends State<ProductsScreen> {
   List<Map<String, dynamic>> _products = [];
-  List<Map<String, dynamic>> _cartItems = [];
+
+  int _selectedIndex = 1;
 
   @override
   void initState() {
@@ -47,15 +50,53 @@ class _ProductsScreenState extends State<ProductsScreen> {
   }
 
   void _addToCart(Map<String, dynamic> product) {
-    setState(() {
-      _cartItems.add({
-        'name': product['name'],
-        'description': product['description'],
-        'rate': product['rate'],
-        'image_url': product['image_url'], // Add image URL
-      });
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    cartProvider.addToCart({
+      'product_id': product['product_id'],
+      'name': product['name'],
+      'description': product['description'],
+      'rate': product['rate'],
+      'image_url': product['image_url'], // Add image URL
     });
-    print('Product added to cart successfully: ${product['name']}');
+    print(
+        'Product added to cart successfully: ${product['name']} with ID: ${product['product_id']}');
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    // Navigate to the appropriate page based on the tapped index
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DashboardScreen(),
+            settings: RouteSettings(arguments: {'userId': widget.userId}),
+          ),
+        );
+        break;
+      case 1:
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CartPage(userId: widget.userId),
+          ),
+        );
+        break;
+      case 2:
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => ProfileScreen(
+                    userId: widget.userId,
+                  )),
+        );
+        break;
+      default:
+        break;
+    }
   }
 
   @override
@@ -84,26 +125,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
         backgroundColor: Colors.lightGreen, // Light green background color
         selectedItemColor: Colors.white, // Color of selected item
         unselectedItemColor: Colors.grey, // Color of unselected items
-        currentIndex: 1, // Index of the Cart icon
-        onTap: (index) {
-          if (index == 1) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) =>
-                      CartPage(cartItems: _cartItems, userId: widget.userId)),
-            );
-          } else if (index == 0) {
-            Navigator.push(context,
-                MaterialPageRoute(builder: (context) => DashboardScreen()));
-          } else if (index == 2) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => ProfileScreen(userId: widget.userId)),
-            );
-          }
-        },
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),

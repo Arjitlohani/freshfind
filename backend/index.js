@@ -2,12 +2,12 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const mysql = require('mysql');
 const multer = require('multer');
-const cors = require('cors');
+
 const path = require('path'); 
 const app = express();
 const port = 3000;
 
-app.use(cors());
+
 app.use(bodyParser.json());
 
 // Specify the full path to the uploads directory
@@ -159,7 +159,8 @@ app.get('/users/:id', (req, res) => {
         }
 
         // Return the user
-        return res.status(200).json(results);
+        return res.status(200).json(results[0]);
+
     });
 });
 
@@ -481,8 +482,6 @@ app.post('/orders', (req, res) => {
         // If the customer doesn't exist, return an error
         if (results.length === 0) {
             return res.status(404).json({ message: 'Customer not found' });
-            console.log('Attempting to insert order for customer ID:', customer_id);
-
         }
 
         // Insert the order details into the orders table
@@ -512,6 +511,7 @@ app.post('/orders', (req, res) => {
         });
     });
 });
+
 
 //  // Endpoint to fetch all customer
 // app.get('/customer', (req, res) => {

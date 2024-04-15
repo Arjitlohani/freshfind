@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:freshfinds/api/api.dart';
+import 'package:freshfinds/models/port.dart';
 import 'package:http/http.dart' as http;
 
 import 'dart:convert';
@@ -20,7 +20,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   final TextEditingController _roleController = TextEditingController();
   final TextEditingController _userIdController = TextEditingController();
   List<Map<String, dynamic>> _users = [];
-  bool _isLoading = false;
+
   int _offset = 0; // Added offset variable for pagination
 
   @override
@@ -406,9 +406,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   }
 
   void _fetchInitialUsers() async {
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() {});
     try {
       final response = await http.get(
         Uri.parse('http://$ipAddress:$port/users?limit=5&offset=$_offset'),
@@ -418,7 +416,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         final dynamic responseData = jsonDecode(response.body)['users'];
         setState(() {
           _users = List<Map<String, dynamic>>.from(responseData);
-          _isLoading = false;
+
           _offset += 5; // Increment offset for next pagination
         });
       } else {
@@ -590,7 +588,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         final dynamic responseData = jsonDecode(response.body)['users'];
         setState(() {
           _users = List<Map<String, dynamic>>.from(responseData);
-          _isLoading = false;
+
           _offset += 5; // Increment offset for next pagination
         });
       } else {
