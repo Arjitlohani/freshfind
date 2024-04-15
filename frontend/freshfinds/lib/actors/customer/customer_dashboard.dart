@@ -159,7 +159,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => ProfileScreen(userId: userId)),
+              builder: (context) => ProfileScreen(
+                    userId: userId,
+                  )),
         );
         break;
       default:

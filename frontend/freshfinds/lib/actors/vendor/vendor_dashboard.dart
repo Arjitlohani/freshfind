@@ -1,22 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:freshfinds/actors/profile.dart';
 import 'package:freshfinds/actors/vendor/productmmt.dart';
-
-void main() {
-  runApp(const VendorDashboard());
-}
-
-class VendorDashboard extends StatelessWidget {
-  const VendorDashboard({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const VendorDashboardScreen();
-  }
-}
+import 'package:freshfinds/providers/user_provider.dart';
+import 'package:provider/provider.dart';
 
 class VendorDashboardScreen extends StatefulWidget {
-  const VendorDashboardScreen({super.key});
+  const VendorDashboardScreen({Key? key}) : super(key: key);
 
   @override
   _VendorDashboardScreenState createState() => _VendorDashboardScreenState();
@@ -24,14 +14,28 @@ class VendorDashboardScreen extends StatefulWidget {
 
 class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
   int _currentIndex = 0;
+  late int userId; // Add userId parameter
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final userProvider = Provider.of<UserProvider>(context);
+    userId = userProvider.userId; // Assign to class-level variable
+    print('User ID: $userId');
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Vendor Dashboard',
-          style: TextStyle(color: Colors.white),
+        title: Consumer<UserProvider>(
+          builder: (context, userProvider, child) {
+            return Text(
+              'Vendor Dashboard ${userProvider.userId}',
+              style: TextStyle(color: Colors.white),
+            );
+          },
         ),
         backgroundColor: const Color.fromARGB(255, 54, 99, 56),
         actions: [
@@ -63,7 +67,7 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
       case 2:
         return Container(); // Placeholder for order management
       case 3:
-        return Container(); // Placeholder for user management
+        return ProfileScreen(userId: userId); // Placeholder for user management
       default:
         return Container(); // Placeholder
     }
@@ -71,9 +75,8 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
 
   // Function to handle logout
   void _logout(BuildContext context) {
-    // Perform any necessary logout tasks here
-    // For example, clearing authentication tokens or session data
-    // Navigate back to the login screen
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    userProvider.user = null; // Clear the user
     Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
 }
@@ -81,7 +84,7 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
 class VendorDrawer extends StatelessWidget {
   final Function(int) onTap;
 
-  const VendorDrawer({super.key, required this.onTap});
+  const VendorDrawer({Key? key, required this.onTap}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -114,7 +117,7 @@ class VendorDrawer extends StatelessWidget {
             onTap: () => onTap(2),
           ),
           ListTile(
-            title: const Text('User Management'),
+            title: const Text('Profile Page'),
             onTap: () => onTap(3),
           ),
         ],
@@ -124,7 +127,7 @@ class VendorDrawer extends StatelessWidget {
 }
 
 class VendorHomeScreen extends StatelessWidget {
-  const VendorHomeScreen({super.key});
+  const VendorHomeScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

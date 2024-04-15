@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => LoginPage(),
         '/signup': (context) => SignupPage(),
         '/adminDashboard': (context) => AdminDashboard(),
-        '/vendorDashboard': (context) => VendorDashboard(),
+        '/vendorDashboard': (context) => VendorDashboardScreen(),
         '/customerDashboard': (context) => DashboardScreen(),
       },
     );

@@ -90,7 +90,8 @@ class _LoginPageState extends State<LoginPage> {
         Navigator.pushNamed(context, '/adminDashboard');
         break;
       case 2:
-        Navigator.pushNamed(context, '/vendorDashboard');
+        Navigator.pushNamed(context, '/vendorDashboard',
+            arguments: {'userId': userId});
         break;
       case 3:
         Navigator.pushReplacementNamed(

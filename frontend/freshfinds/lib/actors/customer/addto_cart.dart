@@ -164,7 +164,7 @@ class _CartItem extends StatefulWidget {
 class __CartItemState extends State<_CartItem> {
   void _incrementQuantity() {
     setState(() {
-      widget.item['quantity'] = (widget.item['quantity'] ?? 0) + 1;
+      widget.item['quantity'] = (widget.item['quantity'] ?? 1) + 1;
       Provider.of<CartProvider>(context, listen: false)
           .updateQuantity(widget.item, widget.item['quantity']);
     });
@@ -173,7 +173,7 @@ class __CartItemState extends State<_CartItem> {
   void _decrementQuantity() {
     if ((widget.item['quantity'] ?? 0) > 1) {
       setState(() {
-        widget.item['quantity'] = (widget.item['quantity'] ?? 0) - 1;
+        widget.item['quantity'] = (widget.item['quantity'] ?? 1) - 1;
         Provider.of<CartProvider>(context, listen: false)
             .updateQuantity(widget.item, widget.item['quantity']);
       });

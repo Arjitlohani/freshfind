@@ -89,7 +89,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => ProfileScreen(userId: widget.userId)),
+              builder: (context) => ProfileScreen(
+                    userId: widget.userId,
+                  )),
         );
         break;
       default:
