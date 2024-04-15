@@ -4,7 +4,9 @@ import 'package:freshfinds/actors/customer/addto_cart.dart';
 import 'package:freshfinds/actors/customer/customer_dashboard.dart';
 import 'package:freshfinds/actors/profile.dart';
 import 'package:freshfinds/models/port.dart';
+import 'package:freshfinds/providers/cart_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 
 class ProductsScreen extends StatefulWidget {
   final int vendorId;
@@ -19,7 +21,7 @@ class ProductsScreen extends StatefulWidget {
 
 class _ProductsScreenState extends State<ProductsScreen> {
   List<Map<String, dynamic>> _products = [];
-  List<Map<String, dynamic>> _cartItems = [];
+
   int _selectedIndex = 1;
 
   @override
@@ -48,13 +50,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
   }
 
   void _addToCart(Map<String, dynamic> product) {
-    setState(() {
-      _cartItems.add({
-        'name': product['name'],
-        'description': product['description'],
-        'rate': product['rate'],
-        'image_url': product['image_url'], // Add image URL
-      });
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    cartProvider.addToCart({
+      'name': product['name'],
+      'description': product['description'],
+      'rate': product['rate'],
+      'image_url': product['image_url'], // Add image URL
     });
     print('Product added to cart successfully: ${product['name']}');
   }
@@ -78,8 +79,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                CartPage(cartItems: _cartItems, userId: widget.userId),
+            builder: (context) => CartPage(userId: widget.userId),
           ),
         );
         break;

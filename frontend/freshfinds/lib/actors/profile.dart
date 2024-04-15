@@ -135,8 +135,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                CartPage(cartItems: [], userId: widget.userId),
+            builder: (context) => CartPage(userId: widget.userId),
           ),
         );
         break;

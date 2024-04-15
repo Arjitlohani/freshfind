@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshfinds/providers/cart_provider.dart';
 import 'package:provider/provider.dart';
 import 'providers/user_provider.dart';
 import 'actors/customer/customer_dashboard.dart';
@@ -10,8 +11,11 @@ import 'actors/admin/admin_dashboard.dart';
 
 void main() {
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => UserProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => UserProvider()),
+        ChangeNotifierProvider(create: (context) => CartProvider()),
+      ],
       child: MyApp(),
     ),
   );

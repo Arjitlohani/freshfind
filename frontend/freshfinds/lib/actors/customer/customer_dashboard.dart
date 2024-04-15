@@ -4,6 +4,7 @@ import 'package:freshfinds/actors/customer/addto_cart.dart';
 import 'package:freshfinds/actors/customer/product_screen.dart';
 import 'package:freshfinds/actors/profile.dart';
 import 'package:freshfinds/models/port.dart';
+import 'package:freshfinds/providers/cart_provider.dart';
 import 'package:freshfinds/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
@@ -31,6 +32,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cartProvider = Provider.of<CartProvider>(context);
     return Scaffold(
       appBar: AppBar(
         title: Consumer<UserProvider>(
@@ -41,8 +43,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
             );
           },
         ),
-        backgroundColor: const Color.fromARGB(255, 54, 99, 56),
         actions: [
+          // Consumer<CartProvider>(
+          //   builder: (context, cartProvider, child) {
+          //     return Badge(
+          //       badge: Text('${cartProvider.cartItems.length}',
+          //           style: TextStyle(color: Colors.white)),
+          //       child: IconButton(
+          //         icon: const Icon(
+          //           Icons.shopping_cart,
+          //           color: Colors.white,
+          //         ),
+          //         onPressed: () => _onItemTapped(1), // Navigate to cart
+          //       ),
+          //     );
+          //   },
+          // ),
           IconButton(
             icon: const Icon(
               Icons.logout,
@@ -115,6 +131,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
     setState(() {
       _selectedIndex = index;
     });
+
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+
     // Navigate to the appropriate page based on the tapped index
     switch (index) {
       case 0:
@@ -130,9 +149,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => CartPage(cartItems: [], userId: userId),
+            builder: (context) => CartPage(userId: userId),
           ),
         );
+        break;
       case 2:
         Navigator.push(
           context,

@@ -1,60 +1,89 @@
 import 'package:flutter/material.dart';
 import 'package:freshfinds/actors/customer/customer_dashboard.dart';
 import 'package:freshfinds/actors/profile.dart';
+import 'package:freshfinds/providers/cart_provider.dart';
+import 'package:provider/provider.dart';
 
-class CartPage extends StatefulWidget {
-  final List<Map<String, dynamic>> cartItems;
-  final int userId; // Add this line to accept userId
+class CartPage extends StatelessWidget {
+  final int userId;
 
-  const CartPage({required this.cartItems, required this.userId, Key? key})
-      : super(key: key);
+  CartPage({required this.userId});
 
-  @override
-  _CartPageState createState() => _CartPageState();
-}
+  int _selectedIndex = 1; // initial index for 'Cart'
 
-class _CartPageState extends State<CartPage> {
-  int _selectedIndex = 1;
-  double _totalPrice = 0.0;
-
-  void _updateTotalPrice() {
-    double total = 0.0;
-    for (var item in widget.cartItems) {
-      total += (item['rate'] ?? 0) * (item['quantity'] ?? 1);
+  void _onItemTapped(int index, BuildContext context) {
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DashboardScreen(),
+            settings: RouteSettings(arguments: {'userId': userId}),
+          ),
+        );
+        break;
+      case 1:
+        // Current page, do nothing
+        break;
+      case 2:
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => ProfileScreen(userId: userId)),
+        );
+        break;
+      default:
+        break;
     }
-    setState(() {
-      _totalPrice = total;
-    });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _updateTotalPrice(); // Calculate the initial total price
   }
 
   @override
   Widget build(BuildContext context) {
+    final cartProvider = Provider.of<CartProvider>(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: Text('Cart - Welcome ${widget.userId}'),
+        title: Text('Cart - Welcome $userId'),
       ),
-      body: ListView.builder(
-        itemCount: widget.cartItems.length,
-        itemBuilder: (context, index) {
-          return CartItem(
-            item: widget.cartItems[index],
-            onDelete: _deleteItem,
-            updateTotalPrice: _updateTotalPrice,
-          );
-        },
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              itemCount: cartProvider.cartItems.length,
+              itemBuilder: (context, index) {
+                return _CartItem(
+                  item: cartProvider.cartItems[index],
+                  onDelete: () {
+                    cartProvider.removeFromCart(cartProvider.cartItems[index]);
+                  },
+                );
+              },
+            ),
+          ),
+          Text(
+            'Total Price: Rs. ${cartProvider.getTotalPrice().toStringAsFixed(2)}',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(
+              10.0,
+            ),
+            child: FloatingActionButton.extended(
+              onPressed: () {
+                // place order logic
+              },
+              label: Text('Place Order'),
+              backgroundColor: Color.fromARGB(216, 107, 231, 111),
+            ),
+          ),
+        ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.lightGreen,
         selectedItemColor: Colors.white,
         unselectedItemColor: Colors.grey,
         currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
+        onTap: (index) => _onItemTapped(index, context),
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
@@ -70,85 +99,32 @@ class _CartPageState extends State<CartPage> {
           ),
         ],
       ),
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Text(
-            'Total: Rs. ${_totalPrice.toStringAsFixed(2)}',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          SizedBox(height: 10),
-          FloatingActionButton.extended(
-            onPressed: () {
-              //  order logic
-            },
-            label: Text(
-              'Place Order',
-              style: TextStyle(color: Colors.white),
-            ),
-            backgroundColor: Color.fromARGB(216, 107, 231, 111),
-          ),
-        ],
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
-  }
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-    // Navigate to the appropriate page based on the tapped index
-    switch (index) {
-      case 0:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => DashboardScreen(),
-            settings: RouteSettings(arguments: {'userId': widget.userId}),
-          ),
-        );
-        break;
-      case 1:
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                CartPage(cartItems: [], userId: widget.userId),
-          ),
-        );
-        break;
-      case 2:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ProfileScreen(userId: widget.userId),
-          ),
-        );
-        break;
-      default:
-        break;
-    }
-  }
-
-  void _deleteItem(Map<String, dynamic> item) {
-    widget.cartItems.remove(item);
-    _updateTotalPrice(); // Update the total price after deleting an item
-    setState(() {});
   }
 }
 
-class _CartItemState extends State<CartItem> {
+class _CartItem extends StatefulWidget {
+  final Map<String, dynamic> item;
+  final Function() onDelete;
+
+  const _CartItem({
+    required this.item,
+    required this.onDelete,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  __CartItemState createState() => __CartItemState();
+}
+
+class __CartItemState extends State<_CartItem> {
   int _quantity = 1;
 
   void _incrementQuantity() {
     setState(() {
       _quantity++;
-      widget.item['quantity'] = _quantity;
-      widget.updateTotalPrice();
+      Provider.of<CartProvider>(context, listen: false)
+          .updateQuantity(widget.item, _quantity);
     });
   }
 
@@ -156,8 +132,8 @@ class _CartItemState extends State<CartItem> {
     if (_quantity > 1) {
       setState(() {
         _quantity--;
-        widget.item['quantity'] = _quantity;
-        widget.updateTotalPrice();
+        Provider.of<CartProvider>(context, listen: false)
+            .updateQuantity(widget.item, _quantity);
       });
     }
   }
@@ -217,28 +193,10 @@ class _CartItemState extends State<CartItem> {
           IconButton(
             icon: Icon(Icons.delete),
             color: Color.fromARGB(106, 202, 53, 42),
-            onPressed: () {
-              widget.onDelete(widget.item);
-            },
+            onPressed: widget.onDelete,
           ),
         ],
       ),
     );
   }
-}
-
-class CartItem extends StatefulWidget {
-  final Map<String, dynamic> item;
-  final Function(Map<String, dynamic>) onDelete;
-  final VoidCallback updateTotalPrice;
-
-  const CartItem({
-    required this.item,
-    required this.onDelete,
-    required this.updateTotalPrice,
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  _CartItemState createState() => _CartItemState();
 }
