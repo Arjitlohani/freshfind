@@ -481,8 +481,6 @@ app.post('/orders', (req, res) => {
         // If the customer doesn't exist, return an error
         if (results.length === 0) {
             return res.status(404).json({ message: 'Customer not found' });
-            console.log('Attempting to insert order for customer ID:', customer_id);
-
         }
 
         // Insert the order details into the orders table
@@ -512,6 +510,7 @@ app.post('/orders', (req, res) => {
         });
     });
 });
+
 
 //  // Endpoint to fetch all customer
 // app.get('/customer', (req, res) => {

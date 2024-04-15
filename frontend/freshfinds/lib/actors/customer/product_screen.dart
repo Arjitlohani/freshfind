@@ -52,12 +52,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
   void _addToCart(Map<String, dynamic> product) {
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
     cartProvider.addToCart({
+      'product_id': product['product_id'],
       'name': product['name'],
       'description': product['description'],
       'rate': product['rate'],
       'image_url': product['image_url'], // Add image URL
     });
-    print('Product added to cart successfully: ${product['name']}');
+    print(
+        'Product added to cart successfully: ${product['name']} with ID: ${product['product_id']}');
   }
 
   void _onItemTapped(int index) {

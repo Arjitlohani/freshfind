@@ -35,6 +35,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final cartProvider = Provider.of<CartProvider>(context);
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: const Color.fromARGB(
+            255, 54, 99, 56), // Set background color to green
         title: Consumer<UserProvider>(
           builder: (context, userProvider, child) {
             return Text(

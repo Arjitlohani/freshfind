@@ -6,8 +6,17 @@ class CartProvider with ChangeNotifier {
   List<Map<String, dynamic>> get cartItems => _cartItems;
 
   void addToCart(Map<String, dynamic> item) {
-    _cartItems.add(item);
-    notifyListeners();
+    final existingItem = _cartItems.firstWhere(
+      (cartItem) => cartItem['product_id'] == item['product_id'],
+      orElse: () => <String, dynamic>{},
+    );
+
+    if (existingItem.isNotEmpty) {
+      updateQuantity(existingItem, (existingItem['quantity'] ?? 1) + 1);
+    } else {
+      _cartItems.add(item);
+      notifyListeners();
+    }
   }
 
   void removeFromCart(Map<String, dynamic> item) {
