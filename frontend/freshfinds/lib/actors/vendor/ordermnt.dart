@@ -47,7 +47,20 @@ class _VendorOrderManagementPageState extends State<VendorOrderManagementPage> {
                       child: ListTile(
                         title: Text('Order ID: ${order['order_id']}'),
                         subtitle: Text(
-                            'Customer ID: ${order['customer_id']}\nTotal Price: Rs. ${order['total_price']}\nStatus: ${order['order_status']}'),
+                            'Customer ID: ${order['customer_id']}\nTotal Price: Rs. ${order['total_price']}'),
+                        trailing: DropdownButton<String>(
+                          value: order['order_status'],
+                          items: <String>['Placed', 'Dispatched', 'Pending']
+                              .map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            _updateOrderStatus(order['order_id'], newValue!);
+                          },
+                        ),
                         onTap: () {
                           _navigateToOrderDetails(order['order_id']);
                         },
@@ -90,5 +103,22 @@ class _VendorOrderManagementPageState extends State<VendorOrderManagementPage> {
         builder: (context) => OrderDetailsPage(orderId: orderId),
       ),
     );
+  }
+
+  Future<void> _updateOrderStatus(int orderId, String status) async {
+    final url = Uri.parse('http://$ipAddress:$port/orders/$orderId/status');
+    final response = await http.put(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'order_status': status}),
+    );
+
+    if (response.statusCode == 200) {
+      // Refresh the order list
+      _fetchOrders();
+    } else {
+      // Handle error
+      print('Failed to update order status: ${response.statusCode}');
+    }
   }
 }

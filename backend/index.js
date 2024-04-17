@@ -546,69 +546,89 @@ app.get('/userDetails/:id', (req, res) => {
 });
 
 
-// Endpoint to fetch orders for a specific customer
-app.get('/orders', (req, res) => {
+// // Endpoint to fetch orders for a specific customer
+// app.get('/customer/orders', (req, res) => {
+//     const customerId = req.query.customerId;
+
+//     // Check if customer ID is provided
+//     if (!customerId) {
+//         return res.status(400).json({ message: 'Customer ID is required' });
+//     }
+
+//     // Query to fetch orders by customer ID
+//     const query = `
+//         SELECT o.order_id, o.total_price, o.order_status, o.delivery_time, o.delivery_address,
+//                oi.product_id, oi.quantity, oi.rate, p.name
+//         FROM orders o
+//         JOIN order_items oi ON o.order_id = oi.order_id
+//         JOIN products p ON oi.product_id = p.product_id
+//         WHERE o.customer_id = ?
+//         ORDER BY o.order_id DESC
+//     `;
+
+//     connection.query(query, [customerId], (error, results) => {
+//         if (error) {
+//             console.error('Error fetching orders:', error);
+//             return res.status(500).json({ message: 'Internal server error' });
+//         }
+
+//         // If no orders found, return 404
+//         if (results.length === 0) {
+//             return res.status(404).json({ message: 'No orders found for the given customer' });
+//         }
+
+//         // Organize orders and order items
+//         const ordersMap = {};
+
+//         results.forEach((row) => {
+//             if (!ordersMap[row.order_id]) {
+//                 ordersMap[row.order_id] = {
+//                     order_id: row.order_id,
+//                     total_price: row.total_price,
+//                     order_status: row.order_status,
+//                     delivery_time: row.delivery_time,
+//                     delivery_address: row.delivery_address,
+//                     order_items: [],
+//                 };
+//             }
+
+//             ordersMap[row.order_id].order_items.push({
+//                 product_id: row.product_id,
+//                 product_name: row.name,  // Changed from row.product_name to row.name
+//                 quantity: row.quantity,
+//                 rate: row.rate,
+//             });
+//         });
+
+//         const orders = Object.values(ordersMap);
+
+//         return res.status(200).json({ orders });
+//     });
+// });
+
+// Fetch Orders for customer
+app.get('/customers/orders', (req, res) => {
     const customerId = req.query.customerId;
 
     // Check if customer ID is provided
     if (!customerId) {
         return res.status(400).json({ message: 'Customer ID is required' });
     }
-
-    // Query to fetch orders by customer ID
     const query = `
-        SELECT o.*, oi.product_id, oi.quantity, oi.rate, p.name AS product_name
-        FROM orders o
-        JOIN order_items oi ON o.order_id = oi.order_id
-        JOIN Products p ON oi.product_id = p.product_id
-        WHERE o.customer_id = ?
-        ORDER BY o.order_id DESC
+      SELECT * FROM orders
+      WHERE customer_id = ?
     `;
-
-    connection.query(query, [customerId], (error, results) => {
-        if (error) {
-            console.error('Error fetching orders:', error);
-            return res.status(500).json({ message: 'Internal server error' });
-        }
-
-        // If no orders found, return 404
-        if (results.length === 0) {
-            return res.status(404).json({ message: 'No orders found for the given customer' });
-        }
-
-        // Organize orders and order items
-        const orders = results.reduce((acc, order) => {
-            const existingOrder = acc.find(o => o.order_id === order.order_id);
-
-            if (existingOrder) {
-                existingOrder.order_items.push({
-                    product_id: order.product_id,
-                    product_name: order.product_name,
-                    quantity: order.quantity,
-                    rate: order.rate
-                });
-            } else {
-                acc.push({
-                    order_id: order.order_id,
-                    total_price: order.total_price,
-                    order_status: order.order_status,
-                    delivery_time: order.delivery_time,
-                    delivery_address: order.delivery_address,
-                    order_items: [{
-                        product_id: order.product_id,
-                        product_name: order.product_name,
-                        quantity: order.quantity,
-                        rate: order.rate
-                    }]
-                });
-            }
-
-            return acc;
-        }, []);
-
-        return res.status(200).json({ orders });
+  
+    connection.query(query, [vendorId], (error, results) => {
+      if (error) {
+        console.error('Error fetching orders:', error);
+        return res.status(500).json({ error: 'Failed to fetch orders' });
+      }
+  
+      res.json({ orders: results });
     });
 });
+
 
 // Fetch Orders for Vendor
 app.get('/vendor/orders', (req, res) => {
@@ -634,11 +654,13 @@ app.get('/vendor/orders/:orderId/details', (req, res) => {
     const orderId = req.params.orderId;
   
     const query = `
-      SELECT p.product_name, oi.quantity, oi.rate, oi.ordered_date, oi.delivery_date, oi.delivery_address
-      FROM order_items oi
-      JOIN products p ON oi.product_id = p.product_id
-      WHERE oi.order_id = ?
-    `;
+        SELECT p.name, oi.quantity, oi.rate, o.order_date, o.delivery_time, o.delivery_address
+        FROM order_items oi
+        JOIN products p ON oi.product_id = p.product_id
+        JOIN orders o ON oi.order_id = o.order_id
+        WHERE oi.order_id = ?
+        `;
+
   
     connection.query(query, [orderId], (error, results) => {
       if (error) {
