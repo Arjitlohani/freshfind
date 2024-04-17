@@ -14,9 +14,17 @@ class CartProvider with ChangeNotifier {
     if (existingItem.isNotEmpty) {
       updateQuantity(existingItem, (existingItem['quantity'] ?? 1) + 1);
     } else {
+      // Initialize quantity to 1 if it's not set
+      item['quantity'] = item['quantity'] ?? 1;
+      item['vendor_id'] = item['vendor_id'];
       _cartItems.add(item);
-      notifyListeners();
     }
+    notifyListeners();
+  }
+
+  void clearCart() {
+    _cartItems.clear();
+    notifyListeners();
   }
 
   void removeFromCart(Map<String, dynamic> item) {
@@ -35,7 +43,15 @@ class CartProvider with ChangeNotifier {
   double getTotalPrice() {
     double total = 0.0;
     for (var item in _cartItems) {
-      total += (item['rate'] ?? 0) * (item['quantity'] ?? 1);
+      // Debugging print statement
+      print('Rate: ${item['rate']}, Quantity: ${item['quantity']}');
+
+      if (item['rate'] is num && item['quantity'] is num) {
+        total +=
+            (double.parse(item['rate'].toString())) * (item['quantity'] ?? 1);
+      } else {
+        print('Invalid item: $item');
+      }
     }
     return total;
   }

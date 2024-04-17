@@ -1,9 +1,8 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:freshfinds/models/port.dart';
-import 'package:http/http.dart' as http;
+import 'package:freshfinds/actors/customer/checkout.dart';
+
 import 'package:freshfinds/actors/customer/customer_dashboard.dart';
-import 'package:freshfinds/actors/profile.dart';
+import 'package:freshfinds/actors/common/profile.dart';
 import 'package:freshfinds/providers/cart_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -40,49 +39,6 @@ class CartPage extends StatelessWidget {
     }
   }
 
-  Future<void> _placeOrder(
-      BuildContext context, CartProvider cartProvider) async {
-    final totalPrice = cartProvider.getTotalPrice();
-    final orderItems = cartProvider.cartItems.map((item) {
-      if (item.containsKey('product_id') && item['product_id'] != null) {
-        return {
-          'product_id': item['product_id'],
-          'quantity': item['quantity'],
-          'rate': item['rate']
-        };
-      } else {
-        throw Exception('Missing product_id in cart item: $item');
-      }
-    }).toList();
-
-    final body = jsonEncode({
-      'customer_id': userId,
-      'total_price': totalPrice,
-      'order_status': 'Pending',
-      'order_items': orderItems
-    });
-
-    final response = await http.post(
-      Uri.parse('http://$ipAddress:$port/orders'),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: body,
-    );
-
-    if (response.statusCode == 200) {
-      final responseData = jsonDecode(response.body);
-      final orderId = responseData['orderId'];
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Order placed successfully with ID: $orderId')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to place order')),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final cartProvider = Provider.of<CartProvider>(context);
@@ -106,20 +62,29 @@ class CartPage extends StatelessWidget {
               },
             ),
           ),
+          SizedBox(height: 16), // Spacer between items and total price
           Text(
             'Total Price: Rs. ${cartProvider.getTotalPrice().toStringAsFixed(2)}',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
-          Padding(
-            padding: const EdgeInsets.all(
-              10.0,
-            ),
-            child: FloatingActionButton.extended(
-              onPressed: () => _placeOrder(context, cartProvider),
-              label: Text('Place Order'),
-              backgroundColor: Color.fromARGB(216, 107, 231, 111),
-            ),
+          SizedBox(
+              height: 16), // Spacer between total price and checkout button
+          FloatingActionButton.extended(
+            onPressed: () {
+              // Navigate to CheckoutPage
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CheckoutPage(userId: userId),
+                ),
+              );
+            },
+            label: Text('Checkout', style: TextStyle(color: Colors.white)),
+            backgroundColor: Color.fromARGB(216, 107, 231, 111),
           ),
+          SizedBox(
+              height:
+                  16), // Spacer between checkout button and BottomNavigationBar
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
