@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:freshfinds/actors/profile.dart';
+import 'package:freshfinds/actors/common/profile.dart';
 import 'package:freshfinds/actors/vendor/productmmt.dart';
 import 'package:freshfinds/providers/user_provider.dart';
 import 'package:provider/provider.dart';

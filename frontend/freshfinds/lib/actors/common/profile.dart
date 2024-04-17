@@ -87,26 +87,70 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         title: Text('Profile - Welcome ${widget.userId}'),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          // TODO: Implement photo selection logic
+        },
+        child: Icon(Icons.add_a_photo),
+        backgroundColor: Colors.lightGreen,
+        elevation: 8.0,
+        tooltip: 'Add Profile Photo',
+      ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Center(
+              child: Container(
+                width: 140.0,
+                height: 140.0,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 5,
+                      blurRadius: 7,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  Icons.person,
+                  size: 100.0,
+                  color: Colors.grey[300],
+                ),
+              ),
+            ),
+            SizedBox(height: 20.0),
             _buildTextField('Name'),
             _buildTextField('Email'),
             _buildTextField('Phone Number'),
             _buildTextField('Address'),
-            ElevatedButton(
-              onPressed: () {
-                if (_isEditing) {
-                  _updateProfile();
-                } else {
-                  setState(() {
-                    _isEditing = true;
-                  });
-                }
-              },
-              child: Text(_isEditing ? 'Save Profile' : 'Edit Profile'),
+            SizedBox(height: 20.0),
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  if (_isEditing) {
+                    _updateProfile();
+                  } else {
+                    setState(() {
+                      _isEditing = true;
+                    });
+                  }
+                },
+                child: Text(_isEditing ? 'Save Profile' : 'Edit Profile'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.lightGreen,
+                  elevation: 8.0,
+                  shadowColor: Colors.grey,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                ),
+              ),
             ),
           ],
         ),
@@ -164,13 +208,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           filled: true,
           fillColor: Colors.grey[200],
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
-            borderSide: BorderSide(color: Colors.grey),
+            borderRadius: BorderRadius.circular(15.0),
+            borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
-            borderSide: BorderSide(color: Color.fromARGB(255, 33, 243, 170)),
+            borderRadius: BorderRadius.circular(15.0),
+            borderSide: BorderSide(color: Colors.lightGreen),
           ),
+          contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         ),
         readOnly: !_isEditing,
         onChanged: (newValue) {

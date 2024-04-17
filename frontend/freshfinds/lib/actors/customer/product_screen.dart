@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:freshfinds/actors/customer/addto_cart.dart';
 import 'package:freshfinds/actors/customer/customer_dashboard.dart';
-import 'package:freshfinds/actors/profile.dart';
+import 'package:freshfinds/actors/common/profile.dart';
 import 'package:freshfinds/models/port.dart';
 import 'package:freshfinds/providers/cart_provider.dart';
 import 'package:http/http.dart' as http;
