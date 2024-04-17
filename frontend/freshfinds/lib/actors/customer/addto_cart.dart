@@ -79,7 +79,7 @@ class CartPage extends StatelessWidget {
                 ),
               );
             },
-            label: Text('Checkout'),
+            label: Text('Checkout', style: TextStyle(color: Colors.white)),
             backgroundColor: Color.fromARGB(216, 107, 231, 111),
           ),
           SizedBox(

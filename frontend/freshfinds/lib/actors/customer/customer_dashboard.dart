@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:freshfinds/actors/common/order_page.dart';
+import 'package:freshfinds/actors/customer/order_page.dart';
 import 'package:freshfinds/actors/customer/addto_cart.dart';
 import 'package:freshfinds/actors/customer/product_screen.dart';
 import 'package:freshfinds/actors/common/profile.dart';
@@ -37,7 +37,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final cartProvider = Provider.of<CartProvider>(context);
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 54, 99, 56),
+        backgroundColor: Colors.lightGreen,
         title: Consumer<UserProvider>(
           builder: (context, userProvider, child) {
             return Text(
@@ -120,31 +120,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
               itemBuilder: (context, index) {
                 final vendor = _vendors[index];
                 return VendorContainer(
-                  vendor: vendor,
-                  onTap: () {
-                    final selectedId = vendor['user_id'] as int?;
-                    final selectedAddress =
-                        vendor['address']?.toLowerCase() ?? '';
-                    if (selectedId != null) {
-                      _selectedArea = selectedAddress.contains('kathmandu')
-                          ? 'Kathmandu'
-                          : selectedAddress.contains('lalitpur')
-                              ? 'Lalitpur'
-                              : selectedAddress.contains('bhaktapur')
-                                  ? 'Bhaktapur'
-                                  : null;
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ProductsScreen(
-                              vendorId: selectedId,
-                              userId: userId,
-                              selectedArea: _selectedArea),
-                        ),
-                      );
-                    }
-                  },
-                );
+                    vendor: vendor,
+                    onTap: () {
+                      final selectedId = vendor['user_id'] as int?;
+                      final selectedAddress =
+                          vendor['address']?.toLowerCase() ?? '';
+                      if (selectedId != null) {
+                        _selectedArea = selectedAddress.contains('kathmandu')
+                            ? 'Kathmandu'
+                            : selectedAddress.contains('lalitpur')
+                                ? 'Lalitpur'
+                                : selectedAddress.contains('bhaktapur')
+                                    ? 'Bhaktapur'
+                                    : null;
+
+                        if (_checkCartItemsForSelectedVendor(selectedId)) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProductsScreen(
+                                  vendorId: selectedId,
+                                  userId: userId,
+                                  selectedArea: _selectedArea),
+                            ),
+                          );
+                        } else {
+                          print('Cannot add products from different vendors');
+                        }
+                      }
+                    });
               },
             ),
           ),
@@ -172,6 +176,31 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
     );
+  }
+
+  bool _checkCartItemsForSelectedVendor(int selectedVendorId) {
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    final cartItems = cartProvider.cartItems;
+
+    List<int> selectedVendors = [];
+
+    for (var item in cartItems) {
+      if (item['vendor_id'] != selectedVendorId) {
+        selectedVendors.add(item['vendor_id']);
+      }
+    }
+
+    if (selectedVendors.isNotEmpty) {
+      String vendorIds = selectedVendors.join(', ');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+              'You can only select products from vendor ID(s): $vendorIds.'),
+        ),
+      );
+      return false;
+    }
+    return true;
   }
 
   void _onItemTapped(int index) {

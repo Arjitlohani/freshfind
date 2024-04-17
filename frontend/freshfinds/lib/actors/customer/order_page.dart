@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:freshfinds/actors/customer/customer_dashboard.dart';
 import 'package:freshfinds/actors/common/profile.dart';
+import 'package:freshfinds/actors/customer/addto_cart.dart';
+import 'package:freshfinds/actors/customer/customer_dashboard.dart';
 import 'package:http/http.dart' as http;
 import 'package:freshfinds/models/port.dart';
 
@@ -20,7 +21,14 @@ class _ViewOrderPageState extends State<ViewOrderPage> {
 
   int _selectedIndex = 1; // initial index for 'Orders'
 
-  void _onItemTapped(int index, BuildContext context) {
+  @override
+  void initState() {
+    super.initState();
+    _fetchOrders();
+  }
+
+  void _onItemTapped(int index) {
+    // Handle bottom navigation bar items
     switch (index) {
       case 0:
         Navigator.pushReplacement(
@@ -32,24 +40,25 @@ class _ViewOrderPageState extends State<ViewOrderPage> {
         );
         break;
       case 1:
-        // Current page, do nothing
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CartPage(userId: widget.userId),
+          ),
+        );
         break;
       case 2:
         Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => ProfileScreen(userId: widget.userId)),
+              builder: (context) => ProfileScreen(
+                    userId: widget.userId,
+                  )),
         );
         break;
       default:
         break;
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchOrders();
   }
 
   @override
@@ -61,40 +70,25 @@ class _ViewOrderPageState extends State<ViewOrderPage> {
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : _orders.isEmpty
-              ? Center(child: Text('Make your first order'))
+              ? Center(child: Text('No orders found'))
               : ListView.builder(
                   itemCount: _orders.length,
                   itemBuilder: (context, index) {
                     final order = _orders[index];
                     return Card(
                       elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
                       margin: EdgeInsets.all(8),
                       child: ListTile(
-                        title: Text(
-                          'Order ID: ${order['order_id']}',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        subtitle: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        title: Text('Order ID: ${order['order_id']}'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('Total Price: Rs. ${order['total_price']}'),
-                            Text(
-                              'Status: ${order['order_status']}',
-                              style: TextStyle(
-                                  color: order['order_status'] == 'Pending'
-                                      ? Color.fromARGB(255, 111, 32, 1)
-                                      : order['order_status'] == 'Delivered'
-                                          ? Colors.green
-                                          : Colors.red),
-                            ),
+                            Text('Status: ${order['order_status']}'),
                           ],
                         ),
                         onTap: () {
-                          // Navigate to the detailed order view
-                          // You can implement this part as needed
+                          _navigateToOrderDetails(order['order_id']);
                         },
                       ),
                     );
@@ -105,7 +99,7 @@ class _ViewOrderPageState extends State<ViewOrderPage> {
         selectedItemColor: Colors.white,
         unselectedItemColor: Colors.grey,
         currentIndex: _selectedIndex,
-        onTap: (index) => _onItemTapped(index, context),
+        onTap: _onItemTapped,
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
@@ -146,6 +140,73 @@ class _ViewOrderPageState extends State<ViewOrderPage> {
       setState(() {
         _isLoading = false;
       });
+    }
+  }
+
+  void _navigateToOrderDetails(int orderId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OrderDetailsPage(orderId: orderId),
+      ),
+    );
+  }
+}
+
+class OrderDetailsPage extends StatelessWidget {
+  final int orderId;
+
+  OrderDetailsPage({required this.orderId});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Order Details'),
+      ),
+      body: FutureBuilder(
+        future: _fetchOrderDetails(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else {
+            final orderDetails = snapshot.data as Map<String, dynamic>;
+            return ListView.builder(
+              itemCount: orderDetails['items'].length,
+              itemBuilder: (context, index) {
+                final item = orderDetails['items'][index];
+                return ListTile(
+                  title: Text('${item['product_name']}'),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Quantity: ${item['quantity']}'),
+                      Text('Rate: Rs. ${item['rate']}'),
+                      Text('Ordered Date: ${item['ordered_date']}'),
+                      Text('Delivery Date: ${item['delivery_date']}'),
+                      Text('Delivery Address: ${item['delivery_address']}'),
+                    ],
+                  ),
+                );
+              },
+            );
+          }
+        },
+      ),
+    );
+  }
+
+  Future<Map<String, dynamic>> _fetchOrderDetails() async {
+    final url = Uri.parse('http://$ipAddress:$port/orders/$orderId/details');
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to load order details: ${response.statusCode}');
     }
   }
 }

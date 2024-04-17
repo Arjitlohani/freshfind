@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:freshfinds/models/user.dart';
 import 'package:freshfinds/providers/user_provider.dart';
-
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'dart:convert';
+
 import '../models/port.dart';
+import '../models/user.dart';
 
 class LoginPage extends StatefulWidget {
   LoginPage({Key? key}) : super(key: key);
@@ -19,7 +19,7 @@ class _LoginPageState extends State<LoginPage> {
       TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  bool _showPassword = false; // Variable to control password visibility
+  bool _showPassword = false;
 
   Future<void> _login(BuildContext context) async {
     const String url = 'http://$ipAddress:$port/login';
@@ -40,7 +40,6 @@ class _LoginPageState extends State<LoginPage> {
       print('Response Body: ${response.body}');
 
       if (response.statusCode == 200) {
-        // Decode the response JSON
         final Map<String, dynamic> responseData = jsonDecode(response.body);
 
         if (responseData.containsKey('role') &&
@@ -48,19 +47,16 @@ class _LoginPageState extends State<LoginPage> {
           final int roleId = responseData['role'];
           final int userId = responseData['user_id'];
 
-          // Set the user ID in UserProvider
           final userProvider =
               Provider.of<UserProvider>(context, listen: false);
           userProvider.user = User(userId: userId);
 
-          // Show login successful message
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
                 content: Text('Login successful'),
                 backgroundColor: Color.fromARGB(166, 3, 95, 6)),
           );
 
-          print('Role ID: $roleId, User ID: $userId');
           _navigateToDashboard(context, roleId, userId);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -121,43 +117,114 @@ class _LoginPageState extends State<LoginPage> {
       appBar: AppBar(title: const Text('Login')),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: EdgeInsets.all(16.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              TextFormField(
-                controller: emailOrUsernameController,
-                decoration: const InputDecoration(labelText: 'Email/Username'),
-              ),
-              const SizedBox(height: 16), // Add some spacing between fields
-              TextFormField(
-                controller: passwordController,
-                obscureText: !_showPassword,
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  suffixIcon: IconButton(
-                    icon: Icon(_showPassword
-                        ? Icons.visibility
-                        : Icons.visibility_off),
-                    onPressed: () {
-                      setState(() {
-                        _showPassword = !_showPassword;
-                      });
-                    },
+              Image.asset('assets/logo.png', height: 150),
+              SizedBox(height: 16),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 2,
+                      blurRadius: 5,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: TextFormField(
+                  controller: emailOrUsernameController,
+                  decoration: InputDecoration(
+                    labelText: 'Email/Username',
+                    floatingLabelBehavior: FloatingLabelBehavior.auto,
+                    fillColor: Colors.grey[200],
+                    filled: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(height: 16), // Add some spacing between fields
+              SizedBox(height: 16),
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 2,
+                      blurRadius: 5,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: TextFormField(
+                  controller: passwordController,
+                  obscureText: !_showPassword,
+                  decoration: InputDecoration(
+                    labelText: 'Password',
+                    floatingLabelBehavior: FloatingLabelBehavior.auto,
+                    fillColor: Colors.grey[200],
+                    filled: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                      borderSide: BorderSide.none,
+                    ),
+                    suffixIcon: IconButton(
+                      icon: Icon(_showPassword
+                          ? Icons.visibility
+                          : Icons.visibility_off),
+                      onPressed: () {
+                        setState(() {
+                          _showPassword = !_showPassword;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => _login(context),
-                child: const Text('Login'),
+                child: Text(
+                  'Login',
+                  style: TextStyle(color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.lightGreen,
+                  elevation: 4,
+                ),
               ),
-              const SizedBox(height: 16), // Add some spacing between fields
+              SizedBox(height: 16),
               TextButton(
                 onPressed: () {
                   Navigator.pushNamed(context, '/signup');
                 },
-                child: const Text('Sign up'),
+                child: Text(
+                  'Sign up',
+                  style: TextStyle(color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.lightGreen,
+                  elevation: 4,
+                ),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Forgot password?',
+                style: TextStyle(color: Colors.grey),
               ),
             ],
           ),

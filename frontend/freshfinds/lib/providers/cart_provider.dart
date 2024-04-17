@@ -16,6 +16,7 @@ class CartProvider with ChangeNotifier {
     } else {
       // Initialize quantity to 1 if it's not set
       item['quantity'] = item['quantity'] ?? 1;
+      item['vendor_id'] = item['vendor_id'];
       _cartItems.add(item);
     }
     notifyListeners();

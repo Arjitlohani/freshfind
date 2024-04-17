@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+
 import 'package:freshfinds/actors/common/profile.dart';
+import 'package:freshfinds/actors/vendor/ordermnt.dart';
 import 'package:freshfinds/actors/vendor/productmmt.dart';
 import 'package:freshfinds/providers/user_provider.dart';
 import 'package:provider/provider.dart';
@@ -37,7 +39,7 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
             );
           },
         ),
-        backgroundColor: const Color.fromARGB(255, 54, 99, 56),
+        backgroundColor: Colors.lightGreen,
         actions: [
           IconButton(
             icon: const Icon(
@@ -65,7 +67,9 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
       case 1:
         return ProductManagementScreen(); // Placeholder for product management
       case 2:
-        return Container(); // Placeholder for order management
+        return VendorOrderManagementPage(
+          vendorId: userId,
+        ); // Placeholder for order management
       case 3:
         return ProfileScreen(userId: userId); // Placeholder for user management
       default:

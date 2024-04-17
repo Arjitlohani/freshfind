@@ -31,8 +31,12 @@ class CheckoutPage extends StatelessWidget {
       }
     }).toList();
 
+    // Extract vendor_id from the first item in the cart
+    final vendorId = cartProvider.cartItems.first['vendor_id'];
+
     final body = jsonEncode({
       'customer_id': userId,
+      'vendor_id': vendorId, // Added vendor_id to order
       'total_price': totalPrice,
       'order_status': 'Pending',
       'delivery_time': deliveryTimeController.text,

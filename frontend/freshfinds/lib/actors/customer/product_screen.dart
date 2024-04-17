@@ -59,10 +59,11 @@ class _ProductsScreenState extends State<ProductsScreen> {
       final cartProvider = Provider.of<CartProvider>(context, listen: false);
       cartProvider.addToCart({
         'product_id': product['product_id'],
+        'vendor_id': widget.vendorId, // Added vendor_id to cart item
         'name': product['name'],
         'description': product['description'],
         'rate': product['rate'],
-        'image_url': product['image_url'], // Add image URL
+        'image_url': product['image_url'],
       });
       print(
           'Product added to cart successfully: ${product['name']} with ID: ${product['product_id']}');
