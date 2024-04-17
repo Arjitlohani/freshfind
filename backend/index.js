@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mysql = require('mysql');
+
 const multer = require('multer');
 
 const path = require('path'); 
@@ -32,20 +33,19 @@ const storage = multer.diskStorage({
   const upload = multer({ storage: storage });
 
 
-const connection = mysql.createConnection({
+  const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     password: '',
     database: 'freshfind'
 });
 
-// Endpoint to handle user login
 app.post('/login', (req, res) => {
-    const { email, password } = req.body;
+    const { emailOrUsername, password } = req.body;
 
-    // Check if email and password are provided
-    if (!email || !password) {
-        return res.status(400).json({ message: 'Email and password are required' });
+    // Check if email/username and password are provided
+    if (!emailOrUsername || !password) {
+        return res.status(400).json({ message: 'Email/Username and password are required' });
     }
 
     // Query to fetch user details along with role
@@ -53,10 +53,10 @@ app.post('/login', (req, res) => {
     SELECT user.*, role.role_id as role
     FROM user 
     JOIN role ON user.role = role.role_id 
-    WHERE email = ? AND password = ?
+    WHERE (email = ? OR user_name = ?) AND password = ?
 `;
 
-    connection.query(query, [email, password], (error, results, fields) => {
+    connection.query(query, [emailOrUsername, emailOrUsername, password], (error, results, fields) => {
         if (error) {
             console.error('Error executing query:', error);
             return res.status(500).json({ message: 'Internal server error' });
@@ -64,13 +64,14 @@ app.post('/login', (req, res) => {
 
         // If no user found, return authentication failed
         if (results.length === 0) {
-            return res.status(401).json({ message: 'Invalid email or password' });
+            return res.status(401).json({ message: 'Invalid email/username or password' });
         }
 
         // User found, return success along with role
         return res.status(200).json({ message: 'Login successful', role: results[0].role, user_id: results[0].user_id  });
     });
 });
+
 
 // Endpoint to handle user signup
 app.post('/signup', (req, res) => {
@@ -408,7 +409,7 @@ const baseURL = 'http://192.168.1.113:3000';
 app.get('/products/vendor/:vendorId', (req, res) => {
     const vendorId = req.params.vendorId;
     const query = `
-        SELECT p.*, CONCAT('${baseURL}/', i.image_url) AS image_url 
+        SELECT p.*, CONCAT('${baseURL}/', i.image_url) AS image_url, p.quantity
         FROM Products p
         LEFT JOIN images i ON p.product_id = i.product_id
         WHERE p.vendor_id = ?;
@@ -422,23 +423,7 @@ app.get('/products/vendor/:vendorId', (req, res) => {
     });
 });
 
-// Fetch User Data Endpoint
-app.get('/user/profile', (req, res) => {
-    // Assuming you have a 'users' table with columns: id, name, email
-    const query = 'SELECT name, email FROM users WHERE id = ?';
-    connection.query(query, [req.user.id], (error, results) => {
-      if (error) {
-        console.error('Error fetching user data:', error);
-        return res.status(500).json({ message: 'Internal server error' });
-      }
-      if (results.length === 0) {
-        return res.status(404).json({ message: 'User not found' });
-      }
-      const userData = results[0];
-      return res.status(200).json(userData);
-    });
-  });
-  
+
 // Endpoint to update user profile
 app.put('/users/update/:id', (req, res) => {
     const userId = req.params.id;
@@ -467,64 +452,161 @@ app.put('/users/update/:id', (req, res) => {
     });
 });
   
-// Endpoint to handle placing an order
 app.post('/orders', (req, res) => {
-    const { customer_id, total_price, order_status, order_items } = req.body;
+    const { customer_id, total_price, order_status, order_items, delivery_time, delivery_address} = req.body;
+    let orderId; 
 
-    // Check if the customer exists
+    // console.log('Received request with the following data:');
+    // console.log('Customer ID:', customer_id);
+    // console.log('Total Price:', total_price);
+    // console.log('Order Status:', order_status);
+    // console.log('Order Items:', order_items);
+
+    console.log('Checking if customer exists...');
     const checkCustomerQuery = 'SELECT * FROM user WHERE user_id = ?';
-    connection.query(checkCustomerQuery, [customer_id], (error, results) => {
+    connection.query(checkCustomerQuery, [customer_id], (error, customerRows) => {
         if (error) {
             console.error('Error checking customer:', error);
             return res.status(500).json({ message: 'Internal server error' });
         }
 
-        // If the customer doesn't exist, return an error
-        if (results.length === 0) {
+        if (customerRows.length === 0) {
+            console.log('Customer not found');
             return res.status(404).json({ message: 'Customer not found' });
         }
 
-        // Insert the order details into the orders table
-        const orderQuery = 'INSERT INTO orders (customer_id, total_price, order_status) VALUES (?, ?, ?)';
-        connection.query(orderQuery, [customer_id, total_price, order_status], (error, orderResults) => {
+        console.log('Starting transaction...');
+        connection.beginTransaction((error) => {
             if (error) {
-                console.error('Error adding order:', error);
+                console.error('Error starting transaction:', error);
                 return res.status(500).json({ message: 'Internal server error' });
             }
 
-            const orderId = orderResults.insertId;
-
-            // Insert the order items into the order_items table
-            const orderItemsQuery = 'INSERT INTO order_items (order_id, product_id, quantity, rate) VALUES ?';
-            
-            // Prepare the order items data for insertion
-            const orderItemsData = order_items.map(item => [orderId, item.product_id, item.quantity, item.rate]);
-
-            connection.query(orderItemsQuery, [orderItemsData], (error) => {
-                if (error) {
-                    console.error('Error adding order items:', error);
-                    return res.status(500).json({ message: 'Internal server error' });
+            // Validate required fields
+             if ( !delivery_time, !delivery_address) {
+                return res.status(400).json({ message: 'Delivery  are missing' });
                 }
 
-                return res.status(200).json({ message: 'Order placed successfully', orderId });
+            console.log('Inserting order details...');
+            const orderQuery = 'INSERT INTO orders (customer_id, total_price, order_status, delivery_time, delivery_address) VALUES (?, ?, ?, ?, ?)';
+            console.log('Order details to insert:', [customer_id, total_price, order_status, delivery_time, delivery_address ]);
+            connection.query(orderQuery, [customer_id, total_price, order_status, delivery_time, delivery_address], (error, orderResults) => {
+                if (error) {
+                    console.error('Error inserting order:', error);
+                    connection.rollback(() => {
+                        return res.status(500).json({ message: 'Internal server error' });
+                    });
+                }
+
+                orderId = orderResults.insertId;
+                console.log('Order ID:', orderId);
+
+                console.log('Inserting order items...');
+                const orderItemsQuery = 'INSERT INTO order_items (order_id, product_id, quantity, rate) VALUES ?';
+                const orderItemsData = order_items.map(item => [orderId, item.product_id, item.quantity, item.rate]);
+                console.log('Order items to insert:', orderItemsData);  // Moved here
+
+                connection.query(orderItemsQuery, [orderItemsData], (error) => {
+                    if (error) {
+                        console.error('Error inserting order items:', error);
+                        connection.rollback(() => {
+                            return res.status(500).json({ message: 'Internal server error' });
+                        });
+                    }
+
+                    console.log('Updating product quantity...');
+                    for (const item of order_items) {
+                        const updateQuantityQuery = 'UPDATE products SET quantity = quantity - ? WHERE product_id = ?';
+                        console.log('Product to update:', [item.quantity, item.product_id]);
+                        connection.query(updateQuantityQuery, [item.quantity, item.product_id], (error) => {
+                            if (error) {
+                                console.error('Error updating product quantity:', error);
+                                connection.rollback(() => {
+                                    return res.status(500).json({ message: 'Internal server error' });
+                                });
+                            }
+                        });
+                    }
+
+                    console.log('Committing transaction...');
+                    connection.commit((error) => {
+                        if (error) {
+                            console.error('Error committing transaction:', error);
+                            return res.status(500).json({ message: 'Internal server error' });
+                        }
+
+                        console.log('Order placed successfully');
+                        return res.status(200).json({ message: 'Order placed successfully', orderId });
+                    });
+                });
             });
         });
     });
 });
 
+// Endpoint to fetch orders by customer ID
+app.get('/orders', (req, res) => {
+    const customerId = req.query.customerId;
 
-//  // Endpoint to fetch all customer
-// app.get('/customer', (req, res) => {
-//     const query = 'SELECT * FROM user WHERE role = 3 ORDER BY user_name ASC';
-//     connection.query(query, (error, results) => {
-//         if (error) {
-//             console.error('Error fetching vendors:', error);
-//             return res.status(500).json({ message: 'Internal server error' });
-//         }
-//         return res.status(200).json({ vendors: results });
-//     });
-// });
+    // Check if customer ID is provided
+    if (!customerId) {
+        return res.status(400).json({ message: 'Customer ID is required' });
+    }
 
+    // Query to fetch orders by customer ID
+    const query = `
+        SELECT o.*, oi.product_id, oi.quantity, oi.rate, p.name AS product_name
+        FROM orders o
+        JOIN order_items oi ON o.order_id = oi.order_id
+        JOIN Products p ON oi.product_id = p.product_id
+        WHERE o.customer_id = ?
+        ORDER BY o.order_id DESC
+    `;
+
+    connection.query(query, [customerId], (error, results) => {
+        if (error) {
+            console.error('Error fetching orders:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+
+        // If no orders found, return 404
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'No orders found for the given customer' });
+        }
+
+        // Organize orders and order items
+        const orders = results.reduce((acc, order) => {
+            const existingOrder = acc.find(o => o.order_id === order.order_id);
+
+            if (existingOrder) {
+                existingOrder.order_items.push({
+                    product_id: order.product_id,
+                    product_name: order.product_name,
+                    quantity: order.quantity,
+                    rate: order.rate
+                });
+            } else {
+                acc.push({
+                    order_id: order.order_id,
+                    total_price: order.total_price,
+                    order_status: order.order_status,
+                    delivery_time: order.delivery_time,
+                    delivery_address: order.delivery_address,
+                    order_items: [{
+                        product_id: order.product_id,
+                        product_name: order.product_name,
+                        quantity: order.quantity,
+                        rate: order.rate
+                    }]
+                });
+            }
+
+            return acc;
+        }, []);
+
+        return res.status(200).json({ orders });
+    });
+});
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send('Something broke!');

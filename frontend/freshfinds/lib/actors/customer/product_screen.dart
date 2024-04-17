@@ -11,9 +11,14 @@ import 'package:provider/provider.dart';
 class ProductsScreen extends StatefulWidget {
   final int vendorId;
   final int userId;
+  final String? selectedArea;
 
-  const ProductsScreen({required this.vendorId, required this.userId, Key? key})
-      : super(key: key);
+  const ProductsScreen({
+    required this.vendorId,
+    required this.userId,
+    this.selectedArea, // Add this line
+    Key? key,
+  }) : super(key: key);
 
   @override
   _ProductsScreenState createState() => _ProductsScreenState();
@@ -50,19 +55,49 @@ class _ProductsScreenState extends State<ProductsScreen> {
   }
 
   void _addToCart(Map<String, dynamic> product) {
-    final cartProvider = Provider.of<CartProvider>(context, listen: false);
-    cartProvider.addToCart({
-      'product_id': product['product_id'],
-      'name': product['name'],
-      'description': product['description'],
-      'rate': product['rate'],
-      'image_url': product['image_url'], // Add image URL
-    });
-    print(
-        'Product added to cart successfully: ${product['name']} with ID: ${product['product_id']}');
+    if (product['quantity'] > 0) {
+      final cartProvider = Provider.of<CartProvider>(context, listen: false);
+      cartProvider.addToCart({
+        'product_id': product['product_id'],
+        'name': product['name'],
+        'description': product['description'],
+        'rate': product['rate'],
+        'image_url': product['image_url'], // Add image URL
+      });
+      print(
+          'Product added to cart successfully: ${product['name']} with ID: ${product['product_id']}');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Sorry, this product is out of stock.'),
+        ),
+      );
+    }
   }
 
   void _onItemTapped(int index) {
+    // Get the selected area from the widget
+    final selectedArea = widget.selectedArea;
+
+    // Check if the selected area matches the product's address for each product in the cart
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+    final cartItems = cartProvider.cartItems;
+
+    if (index == 1 && selectedArea != null) {
+      for (var item in cartItems) {
+        if (item['address'] != null &&
+            !item['address']
+                .toLowerCase()
+                .contains(selectedArea.toLowerCase())) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+                content:
+                    Text('You can only select products from $selectedArea')),
+          );
+          return;
+        }
+      }
+    }
     setState(() {
       _selectedIndex = index;
     });
@@ -211,13 +246,27 @@ class ProductCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 3),
-                Text(
-                  '\RS.${product['rate'] ?? ''}',
-                  style: TextStyle(
-                    color: Colors.green,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '\RS.${product['rate'] ?? ''}',
+                      style: TextStyle(
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      'Qty: ${product['quantity'] ?? ''}',
+                      style: TextStyle(
+                        color: product['quantity'] == 0
+                            ? Colors.red
+                            : Colors.black,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

@@ -15,7 +15,8 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final TextEditingController emailController = TextEditingController();
+  final TextEditingController emailOrUsernameController =
+      TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
   bool _showPassword = false; // Variable to control password visibility
@@ -24,7 +25,7 @@ class _LoginPageState extends State<LoginPage> {
     const String url = 'http://$ipAddress:$port/login';
     final Map<String, String> headers = {'Content-Type': 'application/json'};
     final Map<String, String> body = {
-      'email': emailController.text,
+      'emailOrUsername': emailOrUsernameController.text,
       'password': passwordController.text,
     };
 
@@ -125,8 +126,8 @@ class _LoginPageState extends State<LoginPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               TextFormField(
-                controller: emailController,
-                decoration: const InputDecoration(labelText: 'Email'),
+                controller: emailOrUsernameController,
+                decoration: const InputDecoration(labelText: 'Email/Username'),
               ),
               const SizedBox(height: 16), // Add some spacing between fields
               TextFormField(
