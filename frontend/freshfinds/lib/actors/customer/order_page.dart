@@ -147,8 +147,9 @@ class _ViewOrderPageState extends State<ViewOrderPage> {
   }
 
   Future<void> _fetchOrders() async {
-    final url =
-        Uri.parse('http://$ipAddress:$port/orders?customerId=${widget.userId}');
+    final url = Uri.parse(
+        'http://$ipAddress:$port/customer/orders?customerId=${widget.userId}');
+
     ;
 
     try {

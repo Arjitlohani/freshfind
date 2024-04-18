@@ -546,68 +546,9 @@ app.get('/userDetails/:id', (req, res) => {
 });
 
 
-// // Endpoint to fetch orders for a specific customer
-// app.get('/customer/orders', (req, res) => {
-//     const customerId = req.query.customerId;
-
-//     // Check if customer ID is provided
-//     if (!customerId) {
-//         return res.status(400).json({ message: 'Customer ID is required' });
-//     }
-
-//     // Query to fetch orders by customer ID
-//     const query = `
-//         SELECT o.order_id, o.total_price, o.order_status, o.delivery_time, o.delivery_address,
-//                oi.product_id, oi.quantity, oi.rate, p.name
-//         FROM orders o
-//         JOIN order_items oi ON o.order_id = oi.order_id
-//         JOIN products p ON oi.product_id = p.product_id
-//         WHERE o.customer_id = ?
-//         ORDER BY o.order_id DESC
-//     `;
-
-//     connection.query(query, [customerId], (error, results) => {
-//         if (error) {
-//             console.error('Error fetching orders:', error);
-//             return res.status(500).json({ message: 'Internal server error' });
-//         }
-
-//         // If no orders found, return 404
-//         if (results.length === 0) {
-//             return res.status(404).json({ message: 'No orders found for the given customer' });
-//         }
-
-//         // Organize orders and order items
-//         const ordersMap = {};
-
-//         results.forEach((row) => {
-//             if (!ordersMap[row.order_id]) {
-//                 ordersMap[row.order_id] = {
-//                     order_id: row.order_id,
-//                     total_price: row.total_price,
-//                     order_status: row.order_status,
-//                     delivery_time: row.delivery_time,
-//                     delivery_address: row.delivery_address,
-//                     order_items: [],
-//                 };
-//             }
-
-//             ordersMap[row.order_id].order_items.push({
-//                 product_id: row.product_id,
-//                 product_name: row.name,  // Changed from row.product_name to row.name
-//                 quantity: row.quantity,
-//                 rate: row.rate,
-//             });
-//         });
-
-//         const orders = Object.values(ordersMap);
-
-//         return res.status(200).json({ orders });
-//     });
-// });
 
 // Fetch Orders for customer
-app.get('/customers/orders', (req, res) => {
+app.get('/customer/orders', (req, res) => {
     const customerId = req.query.customerId;
 
     // Check if customer ID is provided
@@ -619,7 +560,8 @@ app.get('/customers/orders', (req, res) => {
       WHERE customer_id = ?
     `;
   
-    connection.query(query, [vendorId], (error, results) => {
+    connection.query(query, [customerId], (error, results) => { 
+
       if (error) {
         console.error('Error fetching orders:', error);
         return res.status(500).json({ error: 'Failed to fetch orders' });
@@ -628,6 +570,8 @@ app.get('/customers/orders', (req, res) => {
       res.json({ orders: results });
     });
 });
+
+
 
 
 // Fetch Orders for Vendor
@@ -701,6 +645,28 @@ app.put('/orders/:id/status', (req, res) => {
         return res.status(200).json({ message: 'Order status updated successfully' });
     });
 });
+
+
+// Fetch Placed Orders for driver dashboard
+app.get('/driver/orders/placed', (req, res) => {
+    const query = `
+      SELECT o.*, oi.product_id, oi.quantity, oi.rate, p.name as product_name
+      FROM orders o
+      JOIN order_items oi ON o.order_id = oi.order_id
+      JOIN products p ON oi.product_id = p.product_id
+      WHERE o.order_status = 'Placed'
+    `;
+
+    connection.query(query, (error, results) => {
+        if (error) {
+            console.error('Error fetching placed orders:', error);
+            return res.status(500).json({ error: 'Failed to fetch placed orders' });
+        }
+
+        res.json({ orders: results });
+    });
+});
+
 
 app.use((err, req, res, next) => {
     console.error(err.stack);

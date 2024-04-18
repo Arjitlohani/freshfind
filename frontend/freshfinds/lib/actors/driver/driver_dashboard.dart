@@ -86,8 +86,9 @@ class _DriverDashboardPageState extends State<DriverDashboardPage> {
     );
   }
 
+  // Update _fetchPlacedOrders method
   Future<void> _fetchPlacedOrders() async {
-    final url = Uri.parse('http://$ipAddress:$port/orders?status=Placed');
+    final url = Uri.parse('http://$ipAddress:$port/driver/orders/placed');
 
     try {
       final response = await http.get(url);
