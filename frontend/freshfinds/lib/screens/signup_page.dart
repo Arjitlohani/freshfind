@@ -16,7 +16,7 @@ class _SignupPageState extends State<SignupPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController phoneNumberController = TextEditingController();
-  final TextEditingController addressController = TextEditingController();
+  final TextEditingController otpController = TextEditingController();
 
   bool _showPassword = false; // Variable to control password visibility
 
@@ -32,6 +32,7 @@ class _SignupPageState extends State<SignupPage> {
       'password': passwordController.text,
       'phone_number': phoneNumberController.text,
       'address': _selectedLocation ?? '',
+      'otp': otpController.text,
     };
 
     if (!_isValidEmail(emailController.text)) {
@@ -70,6 +71,32 @@ class _SignupPageState extends State<SignupPage> {
     }
   }
 
+  Future<void> _sendOtp(BuildContext context) async {
+    const String url = 'http://$ipAddress:$port/sendotp';
+    final Map<String, String> headers = {'Content-Type': 'application/json'};
+    final Map<String, String> body = {
+      'phone_number': phoneNumberController.text,
+    };
+
+    final response = await http.post(
+      Uri.parse(url),
+      headers: headers,
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = jsonDecode(response.body);
+      otpController.text = data['otp'].toString(); // Store OTP in the OTP field
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('OTP sent successfully')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to send OTP')),
+      );
+    }
+  }
+
   bool _isValidEmail(String email) {
     return RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email);
   }
@@ -80,6 +107,8 @@ class _SignupPageState extends State<SignupPage> {
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Sign up')),
       body: SingleChildScrollView(
@@ -197,6 +226,49 @@ class _SignupPageState extends State<SignupPage> {
                 ),
               ),
               SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8.0),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.5),
+                            spreadRadius: 2,
+                            blurRadius: 5,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: TextFormField(
+                        controller: phoneNumberController,
+                        decoration: InputDecoration(
+                          labelText: 'Phone Number',
+                          floatingLabelBehavior: FloatingLabelBehavior.auto,
+                          fillColor: Colors.grey[200],
+                          filled: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                            borderSide: BorderSide.none,
+                          ),
+                          prefixIcon: Icon(Icons.phone),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  ElevatedButton(
+                    onPressed: () => _sendOtp(context),
+                    child: const Text('Get OTP'),
+                  ),
+                ],
+              ),
+              SizedBox(height: 16),
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8.0),
@@ -210,9 +282,9 @@ class _SignupPageState extends State<SignupPage> {
                   ],
                 ),
                 child: TextFormField(
-                  controller: phoneNumberController,
+                  controller: otpController,
                   decoration: InputDecoration(
-                    labelText: 'Phone Number',
+                    labelText: 'OTP',
                     floatingLabelBehavior: FloatingLabelBehavior.auto,
                     fillColor: Colors.grey[200],
                     filled: true,
@@ -224,7 +296,6 @@ class _SignupPageState extends State<SignupPage> {
                       borderRadius: BorderRadius.circular(8.0),
                       borderSide: BorderSide.none,
                     ),
-                    prefixIcon: Icon(Icons.phone),
                   ),
                 ),
               ),

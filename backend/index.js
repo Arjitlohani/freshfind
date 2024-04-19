@@ -1,39 +1,66 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mysql = require('mysql');
-
+const twilio = require('twilio');
 const multer = require('multer');
+const path = require('path');
 
-const path = require('path'); 
 const app = express();
 const port = 3000;
 
-
 app.use(bodyParser.json());
 
-// Specify the full path to the uploads directory
-const uploadsPath = path.join(__dirname, 'uploads');
+// Initialize Twilio client
 
-// Serve static files from the uploads directory
-app.use('/uploads', express.static(uploadsPath));
-// Define storage for uploaded files
+
+// Temporary storage for OTP
+const otpStorage = {};
+
+
+async function sendOTP(phoneNumber) {
+    // Validate phone number format
+    const phoneNumberPattern = /^\d{10}$/;
+    if (!phoneNumberPattern.test(phoneNumber)) {
+        console.error("Invalid phone number format:", phoneNumber);
+        throw new Error("Invalid phone number format");
+    }
+
+    // Concatenate with country code +977
+    const formattedPhoneNumber = `+977${phoneNumber}`;
+
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    otpStorage[formattedPhoneNumber] = otp.toString();  // Store OTP in the temporary storage
+    
+    // Debugging: Print the formatted phone number
+    console.log("Sending OTP to:", formattedPhoneNumber);
+
+    try {
+        await twilioClient.messages.create({
+            body: `Your OTP for registration is ${otp}.`,
+            from: TWILIO_PHONE_NUMBER,
+            to: formattedPhoneNumber,
+        });
+        return otp;  // Return the generated OTP
+    } catch (error) {
+        console.error("Error sending OTP:", error);
+        throw error;
+    }
+}
+
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads/') // Use the 'uploads' folder for storing uploaded files
+        cb(null, 'uploads/');
     },
     filename: function (req, file, cb) {
-        // Ensure unique file names to prevent overwriting existing files
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, uniqueSuffix + '-' + file.originalname);
     },
 });
-  
-  // Initialize multer with the storage configuration
-  const upload = multer({ storage: storage });
 
+const upload = multer({ storage: storage });
 
-  const connection = mysql.createConnection({
+const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     password: '',
@@ -43,12 +70,10 @@ const storage = multer.diskStorage({
 app.post('/login', (req, res) => {
     const { emailOrUsername, password } = req.body;
 
-    // Check if email/username and password are provided
     if (!emailOrUsername || !password) {
         return res.status(400).json({ message: 'Email/Username and password are required' });
     }
 
-    // Query to fetch user details along with role
     const query = `
     SELECT user.*, role.role_id as role
     FROM user 
@@ -56,59 +81,71 @@ app.post('/login', (req, res) => {
     WHERE (email = ? OR user_name = ?) AND password = ?
 `;
 
-    connection.query(query, [emailOrUsername, emailOrUsername, password], (error, results, fields) => {
+    connection.query(query, [emailOrUsername, emailOrUsername, password], (error, results) => {
         if (error) {
             console.error('Error executing query:', error);
             return res.status(500).json({ message: 'Internal server error' });
         }
 
-        // If no user found, return authentication failed
         if (results.length === 0) {
             return res.status(401).json({ message: 'Invalid email/username or password' });
         }
 
-        // User found, return success along with role
-        return res.status(200).json({ message: 'Login successful', role: results[0].role, user_id: results[0].user_id  });
+        return res.status(200).json({ message: 'Login successful', role: results[0].role, user_id: results[0].user_id });
     });
 });
 
+app.post('/sendOTP', async (req, res) => {
+    let { phone_number } = req.body;
+    try {
+        const otp = await sendOTP(phone_number);  // Send OTP and get the generated OTP
+        res.status(200).json({ message: 'OTP sent successfully', otp: otp });
+    } catch (error) {
+        console.error('Error sending OTP:', error);
+        res.status(500).json({ message: 'Error sending OTP' });
+    }
+});
 
-// Endpoint to handle user signup
 app.post('/signup', (req, res) => {
-    const { username, email, password, phone_number, address } = req.body;
+    const { username, email, password, phone_number, address, otp } = req.body;
 
-    // Check if all required fields are provided
-    if (!username || !email || !password || !phone_number || !address) {
+    if (!username || !email || !password || !phone_number || !address || !otp) {
         return res.status(400).json({ message: 'All fields are required' });
     }
-    
 
-    // Check if the email is already registered
-    connection.query('SELECT * FROM user WHERE email = ?', [email], (error, results) => {
+    connection.query('SELECT * FROM user WHERE user_name = ?', [username], (error, results) => {
         if (error) {
-            console.error('Error executing query:', error);
+            console.error('Error checking existing user:', error);
             return res.status(500).json({ message: 'Internal server error' });
         }
 
-        // If the email is already registered, return an error
         if (results.length > 0) {
-            return res.status(409).json({ message: 'Email is already registered' });
+            return res.status(409).json({ message: 'Username is already registered' });
         }
-        
 
-        // Insert the new user into the database
+        // Validate OTP from temporary storage
+        if (otpStorage[formattedPhoneNumber] !== otp) {
+            console.error('Invalid OTP:', otp, 'Expected:', otpStorage[formattedPhoneNumber]);
+            return res.status(401).json({ message: 'Invalid OTP' });
+        }
+
         const query = 'INSERT INTO user (user_name, email, password, phone_number, address) VALUES (?, ?, ?, ?, ?)';
         connection.query(query, [username, email, password, phone_number, address], (error) => {
             if (error) {
-                console.error('Error executing query:', error);
+                console.error('Error executing signup query:', error);
                 return res.status(500).json({ message: 'Internal server error' });
             }
 
-            // User successfully registered
+            // Delete OTP from temporary storage after successful signup
+            delete otpStorage[phone_number];
+
             return res.status(201).json({ message: 'Signup successful' });
         });
     });
 });
+
+
+
 
 app.post('/users', (req, res) => {
     const { username, email, password, phone_number, address, role } = req.body;
@@ -405,7 +442,7 @@ app.get('/vendors', (req, res) => {
     });
 });
 
-const baseURL = 'http://192.168.1.113:3000';
+const baseURL = 'http://100.64.213.126:3000';
 app.get('/products/vendor/:vendorId', (req, res) => {
     const vendorId = req.params.vendorId;
     const query = `
