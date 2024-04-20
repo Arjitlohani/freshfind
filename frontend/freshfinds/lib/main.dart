@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshfinds/actors/driver/driver_dashboard.dart';
 import 'package:freshfinds/providers/cart_provider.dart';
 import 'package:provider/provider.dart';
 import 'providers/user_provider.dart';
@@ -37,6 +38,7 @@ class MyApp extends StatelessWidget {
         '/adminDashboard': (context) => AdminDashboard(),
         '/vendorDashboard': (context) => VendorDashboardScreen(),
         '/customerDashboard': (context) => DashboardScreen(),
+        '/driverDashboard': (context) => DriverDashboardPage(),
       },
     );
   }

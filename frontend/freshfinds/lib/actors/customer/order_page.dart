@@ -34,7 +34,7 @@ class _ViewOrderPageState extends State<ViewOrderPage> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (context) => DashboardScreen(),
+            builder: (context) => const DashboardScreen(),
             settings: RouteSettings(arguments: {'userId': widget.userId}),
           ),
         );
@@ -61,6 +61,23 @@ class _ViewOrderPageState extends State<ViewOrderPage> {
     }
   }
 
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'accepted':
+        return Color.fromARGB(255, 144, 211, 67);
+      case 'declined':
+        return Colors.red;
+      case 'placed':
+        return const Color.fromARGB(255, 210, 127, 3);
+      case 'pending':
+        return const Color.fromARGB(255, 88, 79, 2);
+      case 'delivered':
+        return Color.fromARGB(255, 42, 134, 45);
+      default:
+        return Colors.black;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -80,11 +97,22 @@ class _ViewOrderPageState extends State<ViewOrderPage> {
                       margin: EdgeInsets.all(8),
                       child: ListTile(
                         title: Text('Order ID: ${order['order_id']}'),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        subtitle: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text('Total Price: Rs. ${order['total_price']}'),
-                            Text('Status: ${order['order_status']}'),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                    'Total Price: Rs. ${order['total_price']}'),
+                              ],
+                            ),
+                            Text(
+                              'Status: ${order['order_status']}',
+                              style: TextStyle(
+                                color: _getStatusColor(order['order_status']),
+                              ),
+                            ),
                           ],
                         ),
                         onTap: () {
@@ -119,8 +147,10 @@ class _ViewOrderPageState extends State<ViewOrderPage> {
   }
 
   Future<void> _fetchOrders() async {
-    final url =
-        Uri.parse('http://$ipAddress:$port/orders?customerId=${widget.userId}');
+    final url = Uri.parse(
+        'http://$ipAddress:$port/customer/orders?customerId=${widget.userId}');
+
+    ;
 
     try {
       final response = await http.get(url);
@@ -162,51 +192,53 @@ class OrderDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Order Details'),
+        title: const Text('Order Details'),
       ),
       body: FutureBuilder(
-        future: _fetchOrderDetails(),
+        future: _fetchOrderDetails(orderId), // Pass orderId here
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
-          } else {
-            final orderDetails = snapshot.data as Map<String, dynamic>;
-            return ListView.builder(
-              itemCount: orderDetails['items'].length,
-              itemBuilder: (context, index) {
-                final item = orderDetails['items'][index];
-                return ListTile(
-                  title: Text('${item['product_name']}'),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Quantity: ${item['quantity']}'),
-                      Text('Rate: Rs. ${item['rate']}'),
-                      Text('Ordered Date: ${item['ordered_date']}'),
-                      Text('Delivery Date: ${item['delivery_date']}'),
-                      Text('Delivery Address: ${item['delivery_address']}'),
-                    ],
-                  ),
-                );
-              },
-            );
           }
+          final orderDetails = snapshot.data as List<dynamic>?;
+
+          if (orderDetails == null) {
+            return const Center(child: Text('No order details available'));
+          }
+
+          return ListView.builder(
+            itemCount: orderDetails.length,
+            itemBuilder: (context, index) {
+              final item = orderDetails[index];
+              return ListTile(
+                title: Text('Products: ${item['name']}'),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Quantity: ${item['quantity']}'),
+                    Text('Rate: ${item['rate']}'),
+                    Text('Ordered Date: ${item['order_date']}'),
+                    Text('Delivery Date: ${item['delivery_time']}'),
+                    Text('Address: ${item['delivery_address']}'),
+                  ],
+                ),
+              );
+            },
+          );
         },
       ),
     );
   }
 
-  Future<Map<String, dynamic>> _fetchOrderDetails() async {
-    final url = Uri.parse('http://$ipAddress:$port/orders/$orderId/details');
+  Future<List<dynamic>> _fetchOrderDetails(int orderId) async {
+    final url =
+        Uri.parse('http://$ipAddress:$port/vendor/orders/$orderId/details');
 
     final response = await http.get(url);
+    final responseData = jsonDecode(response.body);
 
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Failed to load order details: ${response.statusCode}');
-    }
+    return responseData['order_items'];
   }
 }

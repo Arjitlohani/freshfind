@@ -36,14 +36,14 @@ class OrderDetailsPage extends StatelessWidget {
             itemBuilder: (context, index) {
               final item = orderDetails[index];
               return ListTile(
-                title: Text('Product: ${item['product_name']}'),
+                title: Text('Products: ${item['name']}'),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Quantity: ${item['quantity']}'),
                     Text('Rate: ${item['rate']}'),
-                    Text('Ordered Date: ${item['ordered_date']}'),
-                    Text('Delivery Date: ${item['delivery_date']}'),
+                    Text('Ordered Date: ${item['order_date']}'),
+                    Text('Delivery Date: ${item['delivery_time']}'),
                     Text('Address: ${item['delivery_address']}'),
                   ],
                 ),

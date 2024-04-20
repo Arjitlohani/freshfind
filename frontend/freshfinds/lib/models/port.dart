@@ -1,4 +1,4 @@
-const String ipAddress = '192.168.1.113';
+const String ipAddress = '192.168.1.6';
 const int port = 3000;
 
 //192.168.1.113

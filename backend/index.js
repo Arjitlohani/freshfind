@@ -1,15 +1,52 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mysql = require('mysql');
-
+const twilio = require('twilio');
 const multer = require('multer');
+const path = require('path');
 
-const path = require('path'); 
 const app = express();
 const port = 3000;
 
-
 app.use(bodyParser.json());
+
+// Initialize Twilio client
+
+
+// Temporary storage for OTP
+const otpStorage = {};
+
+
+async function sendOTP(phoneNumber) {
+    // Validate phone number format
+    const phoneNumberPattern = /^\d{10}$/;
+    if (!phoneNumberPattern.test(phoneNumber)) {
+        console.error("Invalid phone number format:", phoneNumber);
+        throw new Error("Invalid phone number format");
+    }
+
+    // Concatenate with country code +977
+    const formattedPhoneNumber = `+977${phoneNumber}`;
+
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    otpStorage[formattedPhoneNumber] = otp.toString();  // Store OTP in the temporary storage
+    
+    // Debugging: Print the formatted phone number
+    console.log("Sending OTP to:", formattedPhoneNumber);
+
+    try {
+        await twilioClient.messages.create({
+            body: `Your OTP for registration is ${otp}.`,
+            from: TWILIO_PHONE_NUMBER,
+            to: formattedPhoneNumber,
+        });
+        return otp;  // Return the generated OTP
+    } catch (error) {
+        console.error("Error sending OTP:", error);
+        throw error;
+    }
+}
+
 
 // Specify the full path to the uploads directory
 const uploadsPath = path.join(__dirname, 'uploads');
@@ -31,9 +68,8 @@ const storage = multer.diskStorage({
   
   // Initialize multer with the storage configuration
   const upload = multer({ storage: storage });
-
-
-  const connection = mysql.createConnection({
+  
+const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
     password: '',
@@ -43,12 +79,10 @@ const storage = multer.diskStorage({
 app.post('/login', (req, res) => {
     const { emailOrUsername, password } = req.body;
 
-    // Check if email/username and password are provided
     if (!emailOrUsername || !password) {
         return res.status(400).json({ message: 'Email/Username and password are required' });
     }
 
-    // Query to fetch user details along with role
     const query = `
     SELECT user.*, role.role_id as role
     FROM user 
@@ -56,59 +90,75 @@ app.post('/login', (req, res) => {
     WHERE (email = ? OR user_name = ?) AND password = ?
 `;
 
-    connection.query(query, [emailOrUsername, emailOrUsername, password], (error, results, fields) => {
+    connection.query(query, [emailOrUsername, emailOrUsername, password], (error, results) => {
         if (error) {
             console.error('Error executing query:', error);
             return res.status(500).json({ message: 'Internal server error' });
         }
 
-        // If no user found, return authentication failed
         if (results.length === 0) {
             return res.status(401).json({ message: 'Invalid email/username or password' });
         }
 
-        // User found, return success along with role
-        return res.status(200).json({ message: 'Login successful', role: results[0].role, user_id: results[0].user_id  });
+        return res.status(200).json({ message: 'Login successful', role: results[0].role, user_id: results[0].user_id });
     });
 });
 
+app.post('/sendOTP', async (req, res) => {
+    let { phone_number } = req.body;
+    try {
+        const otp = await sendOTP(phone_number);  // Send OTP and get the generated OTP
+        res.status(200).json({ message: 'OTP sent successfully', otp: otp });
+    } catch (error) {
+        console.error('Error sending OTP:', error);
+        res.status(500).json({ message: 'Error sending OTP' });
+    }
+});
 
-// Endpoint to handle user signup
 app.post('/signup', (req, res) => {
-    const { username, email, password, phone_number, address } = req.body;
+    const { username, email, password, phone_number, address, otp } = req.body;
 
-    // Check if all required fields are provided
-    if (!username || !email || !password || !phone_number || !address) {
+    if (!username || !email || !password || !phone_number || !address || !otp) {
         return res.status(400).json({ message: 'All fields are required' });
     }
-    
 
-    // Check if the email is already registered
-    connection.query('SELECT * FROM user WHERE email = ?', [email], (error, results) => {
+    // Concatenate with country code +977
+    const formattedPhoneNumber = `+977${phone_number}`;
+
+    connection.query('SELECT * FROM user WHERE user_name = ?', [username], (error, results) => {
         if (error) {
-            console.error('Error executing query:', error);
+            console.error('Error checking existing user:', error);
             return res.status(500).json({ message: 'Internal server error' });
         }
 
-        // If the email is already registered, return an error
         if (results.length > 0) {
-            return res.status(409).json({ message: 'Email is already registered' });
+            return res.status(409).json({ message: 'Username is already registered' });
         }
-        
 
-        // Insert the new user into the database
+        // Validate OTP from temporary storage
+        if (otpStorage[formattedPhoneNumber] !== otp) {
+            console.error('Invalid OTP:', otp, 'Expected:', otpStorage[formattedPhoneNumber]);
+            return res.status(401).json({ message: 'Invalid OTP' });
+        }
+
         const query = 'INSERT INTO user (user_name, email, password, phone_number, address) VALUES (?, ?, ?, ?, ?)';
         connection.query(query, [username, email, password, phone_number, address], (error) => {
             if (error) {
-                console.error('Error executing query:', error);
+                console.error('Error executing signup query:', error);
                 return res.status(500).json({ message: 'Internal server error' });
             }
 
-            // User successfully registered
+            // Delete OTP from temporary storage after successful signup
+            delete otpStorage[formattedPhoneNumber];
+
             return res.status(201).json({ message: 'Signup successful' });
         });
     });
 });
+
+
+
+
 
 app.post('/users', (req, res) => {
     const { username, email, password, phone_number, address, role } = req.body;
@@ -546,69 +596,33 @@ app.get('/userDetails/:id', (req, res) => {
 });
 
 
-// Endpoint to fetch orders for a specific customer
-app.get('/orders', (req, res) => {
+
+// Fetch Orders for customer
+app.get('/customer/orders', (req, res) => {
     const customerId = req.query.customerId;
 
     // Check if customer ID is provided
     if (!customerId) {
         return res.status(400).json({ message: 'Customer ID is required' });
     }
-
-    // Query to fetch orders by customer ID
     const query = `
-        SELECT o.*, oi.product_id, oi.quantity, oi.rate, p.name AS product_name
-        FROM orders o
-        JOIN order_items oi ON o.order_id = oi.order_id
-        JOIN Products p ON oi.product_id = p.product_id
-        WHERE o.customer_id = ?
-        ORDER BY o.order_id DESC
+      SELECT * FROM orders
+      WHERE customer_id = ?
     `;
+  
+    connection.query(query, [customerId], (error, results) => { 
 
-    connection.query(query, [customerId], (error, results) => {
-        if (error) {
-            console.error('Error fetching orders:', error);
-            return res.status(500).json({ message: 'Internal server error' });
-        }
-
-        // If no orders found, return 404
-        if (results.length === 0) {
-            return res.status(404).json({ message: 'No orders found for the given customer' });
-        }
-
-        // Organize orders and order items
-        const orders = results.reduce((acc, order) => {
-            const existingOrder = acc.find(o => o.order_id === order.order_id);
-
-            if (existingOrder) {
-                existingOrder.order_items.push({
-                    product_id: order.product_id,
-                    product_name: order.product_name,
-                    quantity: order.quantity,
-                    rate: order.rate
-                });
-            } else {
-                acc.push({
-                    order_id: order.order_id,
-                    total_price: order.total_price,
-                    order_status: order.order_status,
-                    delivery_time: order.delivery_time,
-                    delivery_address: order.delivery_address,
-                    order_items: [{
-                        product_id: order.product_id,
-                        product_name: order.product_name,
-                        quantity: order.quantity,
-                        rate: order.rate
-                    }]
-                });
-            }
-
-            return acc;
-        }, []);
-
-        return res.status(200).json({ orders });
+      if (error) {
+        console.error('Error fetching orders:', error);
+        return res.status(500).json({ error: 'Failed to fetch orders' });
+      }
+  
+      res.json({ orders: results });
     });
 });
+
+
+
 
 // Fetch Orders for Vendor
 app.get('/vendor/orders', (req, res) => {
@@ -634,11 +648,13 @@ app.get('/vendor/orders/:orderId/details', (req, res) => {
     const orderId = req.params.orderId;
   
     const query = `
-      SELECT p.product_name, oi.quantity, oi.rate, oi.ordered_date, oi.delivery_date, oi.delivery_address
-      FROM order_items oi
-      JOIN products p ON oi.product_id = p.product_id
-      WHERE oi.order_id = ?
-    `;
+        SELECT p.name, oi.quantity, oi.rate, o.order_date, o.delivery_time, o.delivery_address
+        FROM order_items oi
+        JOIN products p ON oi.product_id = p.product_id
+        JOIN orders o ON oi.order_id = o.order_id
+        WHERE oi.order_id = ?
+        `;
+
   
     connection.query(query, [orderId], (error, results) => {
       if (error) {
@@ -679,6 +695,28 @@ app.put('/orders/:id/status', (req, res) => {
         return res.status(200).json({ message: 'Order status updated successfully' });
     });
 });
+
+
+// Fetch Placed Orders for driver dashboard
+app.get('/driver/orders/placed', (req, res) => {
+    const query = `
+      SELECT o.*, oi.product_id, oi.quantity, oi.rate, p.name as product_name
+      FROM orders o
+      JOIN order_items oi ON o.order_id = oi.order_id
+      JOIN products p ON oi.product_id = p.product_id
+      WHERE o.order_status = 'Placed'
+    `;
+
+    connection.query(query, (error, results) => {
+        if (error) {
+            console.error('Error fetching placed orders:', error);
+            return res.status(500).json({ error: 'Failed to fetch placed orders' });
+        }
+
+        res.json({ orders: results });
+    });
+});
+
 
 app.use((err, req, res, next) => {
     console.error(err.stack);
