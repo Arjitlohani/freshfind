@@ -97,9 +97,7 @@ class VendorDrawer extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: <Widget>[
           const DrawerHeader(
-            decoration: BoxDecoration(
-              color: Color.fromARGB(255, 54, 99, 56),
-            ),
+            decoration: BoxDecoration(color: Colors.lightGreen),
             child: Text(
               'Vendor Menu',
               style: TextStyle(
@@ -143,16 +141,16 @@ class VendorHomeScreen extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Expanded(child: _buildContainer('Total Products', '100')),
-              Expanded(child: _buildContainer('Active Products', '50')),
+              Expanded(child: _buildContainer('Total Products', '19')),
+              Expanded(child: _buildContainer('Active Products', '15')),
             ],
           ),
           const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Expanded(child: _buildContainer('Pending Orders', '30')),
-              Expanded(child: _buildContainer('Completed Orders', '20')),
+              Expanded(child: _buildContainer('Pending Orders', '13')),
+              Expanded(child: _buildContainer('Completed Orders', '5')),
             ],
           ),
           const SizedBox(height: 20),
@@ -203,7 +201,7 @@ class VendorHomeScreen extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       margin: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 54, 99, 56),
+        color: Color.fromARGB(255, 68, 210, 75),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(

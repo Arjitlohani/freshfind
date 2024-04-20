@@ -48,18 +48,27 @@ async function sendOTP(phoneNumber) {
 }
 
 
+// Specify the full path to the uploads directory
+const uploadsPath = path.join(__dirname, 'uploads');
+
+// Serve static files from the uploads directory
+app.use('/uploads', express.static(uploadsPath));
+// Define storage for uploaded files
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads/');
+        cb(null, 'uploads/') // Use the 'uploads' folder for storing uploaded files
     },
     filename: function (req, file, cb) {
+        // Ensure unique file names to prevent overwriting existing files
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, uniqueSuffix + '-' + file.originalname);
     },
 });
-
-const upload = multer({ storage: storage });
-
+  
+  // Initialize multer with the storage configuration
+  const upload = multer({ storage: storage });
+  
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
@@ -113,6 +122,9 @@ app.post('/signup', (req, res) => {
         return res.status(400).json({ message: 'All fields are required' });
     }
 
+    // Concatenate with country code +977
+    const formattedPhoneNumber = `+977${phone_number}`;
+
     connection.query('SELECT * FROM user WHERE user_name = ?', [username], (error, results) => {
         if (error) {
             console.error('Error checking existing user:', error);
@@ -137,12 +149,13 @@ app.post('/signup', (req, res) => {
             }
 
             // Delete OTP from temporary storage after successful signup
-            delete otpStorage[phone_number];
+            delete otpStorage[formattedPhoneNumber];
 
             return res.status(201).json({ message: 'Signup successful' });
         });
     });
 });
+
 
 
 
@@ -442,7 +455,7 @@ app.get('/vendors', (req, res) => {
     });
 });
 
-const baseURL = 'http://100.64.213.126:3000';
+const baseURL = 'http://192.168.1.113:3000';
 app.get('/products/vendor/:vendorId', (req, res) => {
     const vendorId = req.params.vendorId;
     const query = `
