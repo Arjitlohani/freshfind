@@ -10,7 +10,6 @@ const port = 3000;
 
 app.use(bodyParser.json());
 
-// Initialize Twilio client
 
 
 // Temporary storage for OTP
@@ -455,7 +454,7 @@ app.get('/vendors', (req, res) => {
     });
 });
 
-const baseURL = 'http://192.168.1.113:3000';
+const baseURL = 'http://192.168.1.6:3000';
 app.get('/products/vendor/:vendorId', (req, res) => {
     const vendorId = req.params.vendorId;
     const query = `
