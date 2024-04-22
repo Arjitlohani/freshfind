@@ -717,6 +717,26 @@ app.get('/driver/orders/placed', (req, res) => {
     });
 });
 
+// Endpoint to fetch accepted orders for driver
+app.get('/driver/orders/accepted', (req, res) => {
+    const query = `
+        SELECT o.*, oi.product_id, oi.quantity, oi.rate, p.name as product_name
+        FROM orders o
+        JOIN order_items oi ON o.order_id = oi.order_id
+        JOIN products p ON oi.product_id = p.product_id
+        WHERE o.order_status = 'Accept'
+    `;
+
+    connection.query(query, (error, results) => {
+        if (error) {
+            console.error('Error fetching accepted orders:', error);
+            return res.status(500).json({ error: 'Failed to fetch accepted orders' });
+        }
+
+        res.json({ orders: results });
+    });
+});
+
 
 app.use((err, req, res, next) => {
     console.error(err.stack);

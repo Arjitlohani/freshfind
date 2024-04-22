@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:freshfinds/actors/vendor/order_details.dart';
+import 'package:freshfinds/actors/common/order_details.dart';
 import 'package:http/http.dart' as http;
 import 'package:freshfinds/models/port.dart';
 
