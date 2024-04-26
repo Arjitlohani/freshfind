@@ -1,7 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:freshfinds/models/port.dart';
+import 'package:freshfinds/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:freshfinds/models/port.dart';
+import 'package:freshfinds/actors/common/order_details.dart';
+import 'package:freshfinds/actors/driver/accept_list.dart';
+import 'package:freshfinds/actors/common/profile.dart';
+import 'package:provider/provider.dart';
 
 class DriverDashboardPage extends StatefulWidget {
   @override
@@ -9,8 +14,11 @@ class DriverDashboardPage extends StatefulWidget {
 }
 
 class _DriverDashboardPageState extends State<DriverDashboardPage> {
+  Set<int> _uniqueOrderIds = {};
   List<dynamic> _orders = [];
   bool _isLoading = true;
+  int _selectedIndex = 0;
+  late int userId;
 
   @override
   void initState() {
@@ -19,10 +27,67 @@ class _DriverDashboardPageState extends State<DriverDashboardPage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final userProvider = Provider.of<UserProvider>(context);
+    userId = userProvider.userId; // Assign to class-level variable
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text('Driver Dashboard'),
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.lightGreen,
+              ),
+              child: Text(
+                'Menu',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
+              ),
+            ),
+            ListTile(
+              leading: Icon(Icons.home),
+              title: Text('Home'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.assignment),
+              title: Text('Orders'),
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AcceptedOrdersPage(),
+                  ),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.person),
+              title: Text('Profile'),
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ProfileScreen(userId: userId)),
+                );
+              },
+            ),
+          ],
+        ),
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
@@ -32,6 +97,12 @@ class _DriverDashboardPageState extends State<DriverDashboardPage> {
                   itemCount: _orders.length,
                   itemBuilder: (context, index) {
                     final order = _orders[index];
+
+                    // Display orders only with status 'Placed'
+                    if (order['order_status'] != 'Placed') {
+                      return SizedBox.shrink(); // Return an empty widget
+                    }
+
                     return Card(
                       elevation: 4,
                       margin: EdgeInsets.all(8),
@@ -48,30 +119,49 @@ class _DriverDashboardPageState extends State<DriverDashboardPage> {
                               SizedBox(height: 8),
                               Text('Total Price: Rs. ${order['total_price']}'),
                               SizedBox(height: 8),
-                              Text('Status: ${order['order_status']}'),
+                              Text(
+                                'Status: ${order['order_status']}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                               SizedBox(height: 16),
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceAround,
                                 children: [
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      _updateOrderStatus(
-                                          order['order_id'], 'Accepted');
-                                    },
-                                    child: Text('Accepted'),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.lightGreen,
+                                  SizedBox(
+                                    width: 140,
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        _updateOrderStatus(
+                                            order['order_id'], 'Accept');
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: const Color.fromARGB(
+                                            255, 148, 213, 75),
+                                      ),
+                                      child: Text(
+                                        'Accept',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
                                     ),
                                   ),
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      _updateOrderStatus(
-                                          order['order_id'], 'Declined');
-                                    },
-                                    child: Text('Declined'),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
+                                  SizedBox(
+                                    width: 140,
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        _updateOrderStatus(
+                                            order['order_id'], 'Reject');
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor:
+                                            Color.fromARGB(226, 197, 58, 48),
+                                      ),
+                                      child: Text(
+                                        'Reject',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -83,10 +173,57 @@ class _DriverDashboardPageState extends State<DriverDashboardPage> {
                     );
                   },
                 ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.lightGreen,
+        selectedItemColor: Colors.white,
+        unselectedItemColor: Colors.grey,
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.assignment),
+            label: 'Orders',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),
     );
   }
 
-  // Update _fetchPlacedOrders method
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    switch (index) {
+      case 0:
+        // Home screen (DriverDashboardPage)
+        break;
+      case 1:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AcceptedOrdersPage(),
+          ),
+        );
+        break;
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+              builder: (context) => ProfileScreen(userId: userId)),
+        );
+        break;
+    }
+  }
+
   Future<void> _fetchPlacedOrders() async {
     final url = Uri.parse('http://$ipAddress:$port/driver/orders/placed');
 
@@ -97,8 +234,15 @@ class _DriverDashboardPageState extends State<DriverDashboardPage> {
         final responseData = jsonDecode(response.body);
 
         if (responseData.containsKey('orders')) {
+          List<dynamic> orders = responseData['orders'];
+
+          // Filter out duplicate orders
+          orders = orders
+              .where((order) => _uniqueOrderIds.add(order['order_id']))
+              .toList();
+
           setState(() {
-            _orders = responseData['orders'];
+            _orders = orders;
             _isLoading = false;
           });
         } else {
@@ -119,28 +263,28 @@ class _DriverDashboardPageState extends State<DriverDashboardPage> {
     final url = Uri.parse('http://$ipAddress:$port/orders/$orderId/status');
 
     try {
-      final response = await http.get(url);
+      final response = await http.put(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'order_status': status}),
+      );
 
       if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-
-        if (responseData.containsKey('orders')) {
-          setState(() {
-            _orders = responseData['orders'];
-            _isLoading = false;
-          });
-        } else {
-          throw Exception('Unexpected response format: missing "orders" key');
-        }
+        // Update the local orders list
+        setState(() {
+          _orders = _orders.map((order) {
+            if (order['order_id'] == orderId) {
+              order['order_status'] = status;
+            }
+            return order;
+          }).toList();
+        });
       } else {
         throw Exception(
-            'Failed to load placed orders: ${response.statusCode}, ${response.body}');
+            'Failed to update order status: ${response.statusCode}, ${response.body}');
       }
     } catch (e) {
-      print('Error fetching placed orders: $e');
-      setState(() {
-        _isLoading = false;
-      });
+      print('Error updating order status: $e');
     }
   }
 
@@ -151,64 +295,5 @@ class _DriverDashboardPageState extends State<DriverDashboardPage> {
         builder: (context) => OrderDetailsPage(orderId: orderId),
       ),
     );
-  }
-}
-
-class OrderDetailsPage extends StatelessWidget {
-  final int orderId;
-
-  OrderDetailsPage({required this.orderId});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Order Details'),
-      ),
-      body: FutureBuilder(
-        future: _fetchOrderDetails(orderId),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          final orderDetails = snapshot.data as List<dynamic>?;
-
-          if (orderDetails == null) {
-            return Center(child: Text('No order details available'));
-          }
-
-          return ListView.builder(
-            itemCount: orderDetails.length,
-            itemBuilder: (context, index) {
-              final item = orderDetails[index];
-              return ListTile(
-                title: Text('Products: ${item['name']}'),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Quantity: ${item['quantity']}'),
-                    Text('Rate: ${item['rate']}'),
-                    Text('Ordered Date: ${item['order_date']}'),
-                    Text('Delivery Date: ${item['delivery_time']}'),
-                    Text('Address: ${item['delivery_address']}'),
-                  ],
-                ),
-              );
-            },
-          );
-        },
-      ),
-    );
-  }
-
-  Future<List<dynamic>> _fetchOrderDetails(int orderId) async {
-    final url = Uri.parse('http://$ipAddress:$port/orders/$orderId/details');
-
-    final response = await http.get(url);
-    final responseData = jsonDecode(response.body);
-
-    return responseData['order_items'];
   }
 }

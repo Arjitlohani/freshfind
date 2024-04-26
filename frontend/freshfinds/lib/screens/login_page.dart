@@ -98,7 +98,8 @@ class _LoginPageState extends State<LoginPage> {
         );
         break;
       case 4:
-        Navigator.pushNamed(context, '/driverDashboard');
+        Navigator.pushNamed(context, '/driverDashboard',
+            arguments: {'userId': userId});
         break;
       default:
         ScaffoldMessenger.of(context).showSnackBar(
