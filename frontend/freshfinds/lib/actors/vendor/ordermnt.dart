@@ -53,12 +53,19 @@ class _VendorOrderManagementPageState extends State<VendorOrderManagementPage> {
                           items: <String>['Placed', 'Dispatched', 'Pending']
                               .map<DropdownMenuItem<String>>((String value) {
                             return DropdownMenuItem<String>(
-                              value: value,
+                              value: value, // Make sure each value is unique
                               child: Text(value),
                             );
                           }).toList(),
                           onChanged: (String? newValue) {
-                            _updateOrderStatus(order['order_id'], newValue!);
+                            if (newValue != null) {
+                              setState(() {
+                                order['order_status'] = newValue;
+                              });
+                              _updateOrderStatus(order['order_id'], newValue);
+                            } else {
+                              print('New value is null.');
+                            }
                           },
                         ),
                         onTap: () {
@@ -97,12 +104,14 @@ class _VendorOrderManagementPageState extends State<VendorOrderManagementPage> {
   }
 
   void _navigateToOrderDetails(int orderId) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => OrderDetailsPage(orderId: orderId),
-      ),
-    );
+    if (context != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OrderDetailsPage(orderId: orderId),
+        ),
+      );
+    }
   }
 
   Future<void> _updateOrderStatus(int orderId, String status) async {
@@ -113,12 +122,15 @@ class _VendorOrderManagementPageState extends State<VendorOrderManagementPage> {
       body: jsonEncode({'order_status': status}),
     );
 
-    if (response.statusCode == 200) {
-      // Refresh the order list
-      _fetchOrders();
-    } else {
+    if (response.statusCode != 200) {
       // Handle error
       print('Failed to update order status: ${response.statusCode}');
     }
+  }
+
+  @override
+  void dispose() {
+    // Release resources here if necessary
+    super.dispose();
   }
 }
