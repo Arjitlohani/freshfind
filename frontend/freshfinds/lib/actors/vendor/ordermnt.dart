@@ -48,25 +48,38 @@ class _VendorOrderManagementPageState extends State<VendorOrderManagementPage> {
                         title: Text('Order ID: ${order['order_id']}'),
                         subtitle: Text(
                             'Customer ID: ${order['customer_id']}\nTotal Price: Rs. ${order['total_price']}'),
-                        trailing: DropdownButton<String>(
-                          value: order['order_status'],
-                          items: <String>['Placed', 'Dispatched', 'Pending']
-                              .map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value, // Make sure each value is unique
-                              child: Text(value),
-                            );
-                          }).toList(),
-                          onChanged: (String? newValue) {
-                            if (newValue != null) {
-                              setState(() {
-                                order['order_status'] = newValue;
-                              });
-                              _updateOrderStatus(order['order_id'], newValue);
-                            } else {
-                              print('New value is null.');
-                            }
-                          },
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Status: ${order['order_status']}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(width: 8), // Add some spacing
+                            DropdownButton<String>(
+                              hint: Text('Change Status'),
+                              items: <String>[
+                                'Placed',
+                                'Pending',
+                                'Delivered'
+                              ].map<DropdownMenuItem<String>>((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value),
+                                );
+                              }).toList(),
+                              onChanged: (String? newValue) {
+                                if (newValue != null) {
+                                  _updateOrderStatus(
+                                      order['order_id'], newValue);
+                                } else {
+                                  print('New value is null.');
+                                }
+                              },
+                            ),
+                          ],
                         ),
                         onTap: () {
                           _navigateToOrderDetails(order['order_id']);
@@ -122,15 +135,17 @@ class _VendorOrderManagementPageState extends State<VendorOrderManagementPage> {
       body: jsonEncode({'order_status': status}),
     );
 
-    if (response.statusCode != 200) {
-      // Handle error
+    if (response.statusCode == 200) {
+      setState(() {
+        _orders = _orders.map((order) {
+          if (order['order_id'] == orderId) {
+            order['order_status'] = status;
+          }
+          return order;
+        }).toList();
+      });
+    } else {
       print('Failed to update order status: ${response.statusCode}');
     }
-  }
-
-  @override
-  void dispose() {
-    // Release resources here if necessary
-    super.dispose();
   }
 }
