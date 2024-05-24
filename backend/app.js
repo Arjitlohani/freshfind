@@ -4,7 +4,7 @@ const mysql = require('mysql');
 const twilio = require('twilio');
 const multer = require('multer');
 const path = require('path');
-
+const nodemailer = require('nodemailer');
 const app = express();
 const port = 3000;
 
@@ -47,6 +47,8 @@ async function sendOTP(phoneNumber) {
 }
 
 
+
+
 // Specify the full path to the uploads directory
 const uploadsPath = path.join(__dirname, 'uploads');
 
@@ -73,6 +75,130 @@ const connection = mysql.createConnection({
     user: 'root',
     password: '',
     database: 'freshfind'
+});
+
+// // Endpoint to send OTP to email
+// app.post('/forgot-password', (req, res) => {
+//     const { username, email } = req.body;
+
+//     if (!username || !email) {
+//         return res.status(400).json({ message: 'Username and email are required' });
+//     }
+
+//     // Check if the provided username and email exist in the database
+//     const query = 'SELECT * FROM user WHERE user_name = ? AND email = ?';
+//     connection.query(query, [username, email], (error, results) => {
+//         if (error) {
+//             console.error('Error executing query:', error);
+//             return res.status(500).json({ message: 'Internal server error' });
+//         }
+
+//         if (results.length === 0) {
+//             return res.status(404).json({ message: 'User not found' });
+//         }
+
+//         // Generate OTP
+//         const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+//         // Send OTP to the user's email
+//         const mailOptions = {
+//             from: 'alessia.stark21@ethereal.email',
+//             to: email,
+//             subject: 'Password Reset OTP',
+//             text: `Your OTP for password reset is ${otp}.`
+//         };
+
+//         transporter.sendMail(mailOptions, (error, info) => {
+//             if (error) {
+//                 console.error('Error sending email:', error);
+//                 return res.status(500).json({ message: 'Error sending OTP' });
+//             } else {
+//                 console.log('Email sent:', info.response);
+//                 return res.status(200).json({ message: 'OTP sent successfully', otp: otp });
+//             }
+//         });
+//     });
+// });
+
+// app.post('/reset-password', (req, res) => {
+//     const { username, email, otp, newPassword } = req.body;
+
+//     if (!username || !email || !otp || !newPassword) {
+//         return res.status(400).json({ message: 'Username, email, OTP, and new password are required' });
+//     }
+
+//     // Check if the provided username and email exist in the database
+//     const query = 'SELECT * FROM user WHERE user_name = ? AND email = ?';
+//     connection.query(query, [username, email], (error, results) => {
+//         if (error) {
+//             console.error('Error executing query:', error);
+//             return res.status(500).json({ message: 'Internal server error' });
+//         }
+
+//         if (results.length === 0) {
+//             return res.status(404).json({ message: 'User not found' });
+//         }
+
+//         // Validate OTP
+//         const storedOtp = otpStorage[`${username}_${email}`];
+//         if (storedOtp !== otp) {
+//             return res.status(401).json({ message: 'Invalid OTP' });
+//         }
+
+//         // Update password in the database
+//         connection.query('UPDATE user SET password = ? WHERE user_name = ? AND email = ?', [newPassword, username, email], (error, results) => {
+//             if (error) {
+//                 console.error('Error updating password:', error);
+//                 return res.status(500).json({ message: 'Internal server error' });
+//             }
+
+//             return res.status(200).json({ message: 'Password reset successful' });
+//         });
+//     });
+// });
+
+// Endpoint to check if the username exists
+app.post('/check-username', (req, res) => {
+    const { username } = req.body;
+
+    if (!username) {
+        return res.status(400).json({ message: 'Username is required' });
+    }
+
+    // Check if the provided username exists in the database
+    const query = 'SELECT * FROM user WHERE user_name = ?';
+    connection.query(query, [username], (error, results) => {
+        if (error) {
+            console.error('Error executing query:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'Username not found' });
+        }
+
+        // If username exists, redirect to reset password page
+        return res.status(200).json({ message: 'Username found', username: username });
+    });
+});
+
+// Endpoint to reset password
+app.post('/reset-password', (req, res) => {
+    const { username, newPassword } = req.body;
+
+    if (!username || !newPassword) {
+        return res.status(400).json({ message: 'Username and new password are required' });
+    }
+
+    // Update password in the database
+    connection.query('UPDATE user SET password = ? WHERE user_name = ?', [newPassword, username], (error, results) => {
+        if (error) {
+            console.error('Error updating password:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+
+        return res.status(200).json({ message: 'Password reset successful' });
+    });
 });
 
 app.post('/login', (req, res) => {
@@ -591,6 +717,23 @@ app.get('/userDetails/:id', (req, res) => {
         }
 
         return res.status(200).json(results[0]);
+    });
+});
+
+// Fetch All Orders
+app.get('/orders', (req, res) => {
+    const query = `
+      SELECT * FROM orders
+    `;
+  
+    connection.query(query, (error, results) => { 
+
+      if (error) {
+        console.error('Error fetching orders:', error);
+        return res.status(500).json({ error: 'Failed to fetch orders' });
+      }
+  
+      res.json({ orders: results });
     });
 });
 

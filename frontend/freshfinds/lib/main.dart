@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:freshfinds/actors/driver/driver_dashboard.dart';
 
 import 'package:freshfinds/providers/cart_provider.dart';
+import 'package:freshfinds/screens/forgetpassword_page';
+
 import 'package:provider/provider.dart';
 import 'providers/user_provider.dart';
 import 'actors/customer/customer_dashboard.dart';
@@ -40,6 +42,7 @@ class MyApp extends StatelessWidget {
         '/vendorDashboard': (context) => VendorDashboardScreen(),
         '/customerDashboard': (context) => DashboardScreen(),
         '/driverDashboard': (context) => DriverDashboardPage(),
+        '/forgotPassword': (context) => ForgotPasswordScreen()
       },
     );
   }

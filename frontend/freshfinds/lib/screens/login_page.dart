@@ -53,15 +53,17 @@ class _LoginPageState extends State<LoginPage> {
 
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-                content: Text('Login successful'),
-                backgroundColor: Color.fromARGB(166, 3, 95, 6)),
+              content: Text('Login successful'),
+              backgroundColor: Color.fromARGB(166, 3, 95, 6),
+            ),
           );
 
           _navigateToDashboard(context, roleId, userId);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-                content: Text('Role ID or User ID not found in response')),
+              content: Text('Role ID or User ID not found in response'),
+            ),
           );
         }
       } else {
@@ -76,7 +78,8 @@ class _LoginPageState extends State<LoginPage> {
       print('Error during login: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('Error during login. Please try again later.')),
+          content: Text('Error during login. Please try again later.'),
+        ),
       );
     }
   }
@@ -196,6 +199,18 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
               ),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/forgotPassword');
+                  },
+                  child: Text(
+                    'Forgot password?',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+              ),
               SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () => _login(context),
@@ -221,11 +236,6 @@ class _LoginPageState extends State<LoginPage> {
                   backgroundColor: Colors.lightGreen,
                   elevation: 4,
                 ),
-              ),
-              SizedBox(height: 16),
-              Text(
-                'Forgot password?',
-                style: TextStyle(color: Colors.grey),
               ),
             ],
           ),

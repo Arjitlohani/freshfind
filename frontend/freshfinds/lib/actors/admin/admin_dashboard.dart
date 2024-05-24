@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freshfinds/actors/admin/ordermmt.dart';
 // Importing fl_chart library
 
 import 'productmmt.dart';
@@ -93,7 +94,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         return const ProductManagementScreen();
       case 2:
         // Call the OrderManagementScreen method here
-        return Container();
+        return OrderManagementScreen(orders: []);
       case 3:
         return const UserManagementScreen();
       default:

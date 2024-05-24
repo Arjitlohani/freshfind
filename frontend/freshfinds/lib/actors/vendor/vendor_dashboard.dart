@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-
 import 'package:freshfinds/actors/common/profile.dart';
+import 'package:freshfinds/actors/vendor/addDriver.dart'; // Import added
 import 'package:freshfinds/actors/vendor/ordermnt.dart';
 import 'package:freshfinds/actors/vendor/productmmt.dart';
 import 'package:freshfinds/providers/user_provider.dart';
@@ -16,14 +16,13 @@ class VendorDashboardScreen extends StatefulWidget {
 
 class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
   int _currentIndex = 0;
-  late int userId; // Add userId parameter
+  late int userId;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-
     final userProvider = Provider.of<UserProvider>(context);
-    userId = userProvider.userId; // Assign to class-level variable
+    userId = userProvider.userId;
     print('User ID: $userId');
   }
 
@@ -35,7 +34,7 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
           builder: (context, userProvider, child) {
             return Text(
               'Vendor Dashboard ${userProvider.userId}',
-              style: TextStyle(color: Colors.white),
+              style: const TextStyle(color: Colors.white),
             );
           },
         ),
@@ -65,22 +64,23 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
       case 0:
         return const VendorHomeScreen();
       case 1:
-        return ProductManagementScreen(); // Placeholder for product management
+        return ProductManagementScreen();
       case 2:
         return VendorOrderManagementPage(
           vendorId: userId,
-        ); // Placeholder for order management
+        );
       case 3:
-        return ProfileScreen(userId: userId); // Placeholder for user management
+        return ProfileScreen(userId: userId);
+      case 4:
+        return DriverManagementScreen();
       default:
-        return Container(); // Placeholder
+        return Container();
     }
   }
 
-  // Function to handle logout
   void _logout(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-    userProvider.user = null; // Clear the user
+    userProvider.user = null;
     Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
 }
@@ -122,6 +122,10 @@ class VendorDrawer extends StatelessWidget {
             title: const Text('Profile Page'),
             onTap: () => onTap(3),
           ),
+          ListTile(
+            title: const Text('Add Driver'),
+            onTap: () => onTap(4),
+          ),
         ],
       ),
     );
@@ -154,7 +158,6 @@ class VendorHomeScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 20),
-          // Pie Chart for Sales
           SizedBox(
             height: 200,
             width: MediaQuery.of(context).size.width * 0.8,
@@ -201,7 +204,7 @@ class VendorHomeScreen extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       margin: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: Color.fromARGB(255, 68, 210, 75),
+        color: const Color.fromARGB(255, 68, 210, 75),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
