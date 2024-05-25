@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:freshfinds/actors/customer/addto_cart.dart';
 import 'package:freshfinds/actors/customer/customer_dashboard.dart';
 import 'package:freshfinds/models/port.dart';
+import 'package:freshfinds/providers/user_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 
 class ProfileScreen extends StatefulWidget {
   final int userId; // Receive userId as a parameter
@@ -85,7 +87,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Profile - Welcome ${widget.userId}'),
+        title: Consumer<UserProvider>(
+          builder: (context, userProvider, child) {
+            return Text('Profile - Welcome ${userProvider.username}');
+          },
+        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -155,27 +161,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.lightGreen,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.grey,
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
-            label: 'Cart',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-      ),
+      // bottomNavigationBar: BottomNavigationBar(
+      //   backgroundColor: Colors.lightGreen,
+      //   selectedItemColor: Colors.white,
+      //   unselectedItemColor: Colors.grey,
+      //   currentIndex: _selectedIndex,
+      //   onTap: _onItemTapped,
+      //   items: const <BottomNavigationBarItem>[
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.home),
+      //       label: 'Home',
+      //     ),
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.shopping_cart),
+      //       label: 'Cart',
+      //     ),
+      //     BottomNavigationBarItem(
+      //       icon: Icon(Icons.person),
+      //       label: 'Profile',
+      //     ),
+      //   ],
+      // ),
     );
   }
 

@@ -38,54 +38,60 @@ class _VendorOrderManagementPageState extends State<VendorOrderManagementPage> {
                   itemCount: _orders.length,
                   itemBuilder: (context, index) {
                     final order = _orders[index];
-                    return Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      margin: EdgeInsets.all(8),
-                      child: ListTile(
-                        title: Text('Order ID: ${order['order_id']}'),
-                        subtitle: Text(
-                            'Customer ID: ${order['customer_id']}\nTotal Price: Rs. ${order['total_price']}'),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'Status: ${order['order_status']}',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(width: 8), // Add some spacing
-                            DropdownButton<String>(
-                              hint: Text('Change Status'),
-                              items: <String>[
-                                'Placed',
-                                'Pending',
-                                'Delivered'
-                              ].map<DropdownMenuItem<String>>((String value) {
-                                return DropdownMenuItem<String>(
-                                  value: value,
-                                  child: Text(value),
-                                );
-                              }).toList(),
-                              onChanged: (String? newValue) {
-                                if (newValue != null) {
-                                  _updateOrderStatus(
-                                      order['order_id'], newValue);
-                                } else {
-                                  print('New value is null.');
-                                }
-                              },
-                            ),
-                          ],
+                    // Check if the order status is not "Returned"
+                    if (order['order_status'] != 'Returned') {
+                      return Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
                         ),
-                        onTap: () {
-                          _navigateToOrderDetails(order['order_id']);
-                        },
-                      ),
-                    );
+                        margin: EdgeInsets.all(8),
+                        child: ListTile(
+                          title: Text('Order ID: ${order['order_id']}'),
+                          subtitle: Text(
+                              'Customer ID: ${order['customer_id']}\nTotal Price: Rs. ${order['total_price']}'),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Status: ${order['order_status']}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(width: 8), // Add some spacing
+                              DropdownButton<String>(
+                                hint: Text('Change Status'),
+                                items: <String>[
+                                  'Placed',
+                                  'Pending',
+                                  'Delivered'
+                                ].map<DropdownMenuItem<String>>((String value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Text(value),
+                                  );
+                                }).toList(),
+                                onChanged: (String? newValue) {
+                                  if (newValue != null) {
+                                    _updateOrderStatus(
+                                        order['order_id'], newValue);
+                                  } else {
+                                    print('New value is null.');
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                          onTap: () {
+                            _navigateToOrderDetails(order['order_id']);
+                          },
+                        ),
+                      );
+                    } else {
+                      // If the order status is "Returned", return an empty container
+                      return Container();
+                    }
                   },
                 ),
     );

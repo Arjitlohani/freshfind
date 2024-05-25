@@ -4,6 +4,7 @@ import 'package:freshfinds/actors/customer/checkout.dart';
 import 'package:freshfinds/actors/customer/customer_dashboard.dart';
 import 'package:freshfinds/actors/common/profile.dart';
 import 'package:freshfinds/providers/cart_provider.dart';
+import 'package:freshfinds/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 
 class CartPage extends StatelessWidget {
@@ -45,7 +46,11 @@ class CartPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Cart - Welcome $userId'),
+        title: Consumer<UserProvider>(
+          builder: (context, userProvider, child) {
+            return Text('Cart - Welcome ${userProvider.username}');
+          },
+        ),
       ),
       body: Column(
         children: [

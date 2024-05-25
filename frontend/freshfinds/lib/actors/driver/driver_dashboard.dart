@@ -38,7 +38,11 @@ class _DriverDashboardPageState extends State<DriverDashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Driver Dashboard'),
+        title: Consumer<UserProvider>(
+          builder: (context, userProvider, child) {
+            return Text('Driver Dashboard ${userProvider.username}');
+          },
+        ),
         backgroundColor: const Color.fromARGB(255, 54, 99, 56),
         actions: [
           IconButton(

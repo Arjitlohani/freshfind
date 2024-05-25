@@ -41,7 +41,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         title: Consumer<UserProvider>(
           builder: (context, userProvider, child) {
             return Text(
-              'Welcome ${userProvider.userId}',
+              'Welcome ${userProvider.username}', // Update this line
               style: TextStyle(color: Colors.white),
             );
           },
@@ -110,7 +110,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              'Vendors',
+              'Select Vendor',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
           ),

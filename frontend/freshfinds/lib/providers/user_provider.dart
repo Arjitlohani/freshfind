@@ -12,4 +12,5 @@ class UserProvider with ChangeNotifier {
   }
 
   int get userId => _user?.userId ?? 0; // Use null check operator
+  String get username => _user?.username ?? ''; // Add this line
 }

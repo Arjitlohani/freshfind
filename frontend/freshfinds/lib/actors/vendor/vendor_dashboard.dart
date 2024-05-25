@@ -1,11 +1,14 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:freshfinds/actors/common/profile.dart';
 import 'package:freshfinds/actors/vendor/addDriver.dart'; // Import added
 import 'package:freshfinds/actors/vendor/ordermnt.dart';
 import 'package:freshfinds/actors/vendor/productmmt.dart';
+import 'package:freshfinds/models/port.dart';
 import 'package:freshfinds/providers/user_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
 
 class VendorDashboardScreen extends StatefulWidget {
   const VendorDashboardScreen({Key? key}) : super(key: key);
@@ -33,7 +36,7 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
         title: Consumer<UserProvider>(
           builder: (context, userProvider, child) {
             return Text(
-              'Vendor Dashboard ${userProvider.userId}',
+              'Vendor Dashboard ${userProvider.username}',
               style: const TextStyle(color: Colors.white),
             );
           },
@@ -56,13 +59,46 @@ class _VendorDashboardScreenState extends State<VendorDashboardScreen> {
         });
       }),
       body: _buildBody(_currentIndex),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.lightGreen,
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        // Set background color
+        selectedItemColor: Colors.white, // Set selected item color
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.inventory),
+            label: 'Products',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_bag),
+            label: 'Orders',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_add),
+            label: 'Add Driver',
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildBody(int index) {
     switch (index) {
       case 0:
-        return const VendorHomeScreen();
+        return VendorHomeScreen(vendorId: userId); // Pass vendorId here
       case 1:
         return ProductManagementScreen();
       case 2:
@@ -101,7 +137,7 @@ class VendorDrawer extends StatelessWidget {
             child: Text(
               'Vendor Menu',
               style: TextStyle(
-                color: Colors.white,
+                color: Color.fromARGB(255, 255, 255, 255),
                 fontSize: 24,
               ),
             ),
@@ -132,79 +168,92 @@ class VendorDrawer extends StatelessWidget {
   }
 }
 
-class VendorHomeScreen extends StatelessWidget {
-  const VendorHomeScreen({Key? key}) : super(key: key);
+class VendorHomeScreen extends StatefulWidget {
+  final int vendorId;
+
+  const VendorHomeScreen({Key? key, required this.vendorId}) : super(key: key);
+
+  @override
+  _VendorHomeScreenState createState() => _VendorHomeScreenState();
+}
+
+class _VendorHomeScreenState extends State<VendorHomeScreen> {
+  int totalOrders = 0;
+  int placedOrders = 0;
+  int acceptedOrders = 0;
+  int deliveredOrders = 0;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchOrderStats();
+  }
+
+  Future<void> fetchOrderStats() async {
+    final url = Uri.parse(
+        'http://$ipAddress:$port/vendors/${widget.vendorId}/orders/stats');
+    print('Fetching order statistics for vendor ID: ${widget.vendorId}');
+
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          totalOrders = data['totalOrders'] ?? 0;
+          placedOrders = data['placedOrders'] ?? 0;
+          acceptedOrders = data['acceptedOrders'] ?? 0;
+          deliveredOrders = data['deliveredOrders'] ?? 0;
+          isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load order statistics');
+      }
+    } catch (error) {
+      print('Error fetching order statistics: $error');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Expanded(child: _buildContainer('Total Products', '19')),
-              Expanded(child: _buildContainer('Active Products', '15')),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Expanded(child: _buildContainer('Pending Orders', '13')),
-              Expanded(child: _buildContainer('Completed Orders', '5')),
-            ],
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            height: 200,
-            width: MediaQuery.of(context).size.width * 0.8,
-            child: Card(
-              child: PieChart(
-                PieChartData(
-                  sections: [
-                    PieChartSectionData(
-                      value: 30,
-                      color: Colors.blue,
-                      title: 'Fruits',
-                      radius: 50,
-                    ),
-                    PieChartSectionData(
-                      value: 40,
-                      color: Colors.green,
-                      title: 'Vegetables',
-                      radius: 50,
-                    ),
-                    PieChartSectionData(
-                      value: 20,
-                      color: Colors.orange,
-                      title: 'Dairy',
-                      radius: 50,
-                    ),
-                    PieChartSectionData(
-                      value: 10,
-                      color: Colors.red,
-                      title: 'Beverages',
-                      radius: 50,
-                    ),
+      child: isLoading
+          ? CircularProgressIndicator()
+          : Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildContainer('Total Orders', totalOrders.toString()),
+                    _buildContainer('Placed Orders', placedOrders.toString()),
                   ],
                 ),
-              ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildContainer(
+                        'Accepted Orders', acceptedOrders.toString()),
+                    _buildContainer(
+                        'Delivered Orders', deliveredOrders.toString()),
+                  ],
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 
   Widget _buildContainer(String title, String value) {
     return Container(
+      width: MediaQuery.of(context).size.width / 2 - 24,
       padding: const EdgeInsets.all(10),
-      margin: const EdgeInsets.symmetric(horizontal: 10),
+      margin: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 68, 210, 75),
+        color: Colors.lightGreen,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -212,13 +261,12 @@ class VendorHomeScreen extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 5),
+          SizedBox(height: 5),
           Text(
             value,
-            style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold),
+            style: TextStyle(color: Colors.white),
           ),
         ],
       ),

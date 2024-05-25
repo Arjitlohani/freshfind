@@ -20,7 +20,6 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController passwordController = TextEditingController();
 
   bool _showPassword = false;
-
   Future<void> _login(BuildContext context) async {
     const String url = 'http://$ipAddress:$port/login';
     final Map<String, String> headers = {'Content-Type': 'application/json'};
@@ -42,14 +41,19 @@ class _LoginPageState extends State<LoginPage> {
       if (response.statusCode == 200) {
         final Map<String, dynamic> responseData = jsonDecode(response.body);
 
+        // Print response data for debugging
+        print('Response Data: $responseData');
+
         if (responseData.containsKey('role') &&
-            responseData.containsKey('user_id')) {
+            responseData.containsKey('user_id') &&
+            responseData.containsKey('username')) {
           final int roleId = responseData['role'];
           final int userId = responseData['user_id'];
+          final String username = responseData['username'];
 
           final userProvider =
               Provider.of<UserProvider>(context, listen: false);
-          userProvider.user = User(userId: userId);
+          userProvider.user = User(userId: userId, username: username);
 
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -62,7 +66,8 @@ class _LoginPageState extends State<LoginPage> {
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Role ID or User ID not found in response'),
+              content:
+                  Text('Role ID, User ID, or Username not found in response'),
             ),
           );
         }

@@ -19,6 +19,8 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _roleController = TextEditingController();
   final TextEditingController _userIdController = TextEditingController();
+  final TextEditingController _searchusernameController =
+      TextEditingController();
   List<Map<String, dynamic>> _users = [];
 
   int _offset = 0; // Added offset variable for pagination
@@ -377,31 +379,45 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
   void _fetchUser() async {
     try {
-      // Check if the userIdController text field is empty
-      if (_userIdController.text.isEmpty) {
-        _fetchInitialUsers(); // If empty, fetch initial users
+      // Check if the username controller text field is empty
+      if (_searchusernameController.text.isEmpty) {
+        _showErrorDialog('Please enter a username');
         return;
       }
 
+      final String username = _searchusernameController.text;
+
       final response = await http.get(
-        Uri.parse('http://$ipAddress:$port/users/${_userIdController.text}'),
+        Uri.parse('http://$ipAddress:$port/users/search/name?name=$username'),
       );
 
-      if (response.statusCode == 200) {
-        final List<dynamic> responseData = jsonDecode(response.body);
-        setState(() {
-          _users = List<Map<String, dynamic>>.from(responseData);
-        });
-      } else if (response.statusCode == 404) {
-        setState(() {
-          _users = [];
-        });
-        _showErrorDialog('User not found');
-      } else {
-        throw Exception('Failed to fetch user: ${response.statusCode}');
-      }
+      _handleUserResponse(response);
     } catch (e) {
       _showErrorDialog('Failed to fetch user. Please try again later.');
+    }
+  }
+
+  void _handleUserResponse(http.Response response) {
+    if (response.statusCode == 200) {
+      final dynamic responseData = jsonDecode(response.body);
+
+      if (responseData['exists'] == true) {
+        setState(() {
+          _users = [responseData]; // Remove the wrapping list
+        });
+      } else {
+        setState(() {
+          _users = []; // Clear the user list if user not found
+        });
+        _showErrorDialog('User not found');
+      }
+    } else if (response.statusCode == 404) {
+      setState(() {
+        _users = [];
+      });
+      _showErrorDialog('User not found');
+    } else {
+      throw Exception('Failed to fetch user: ${response.statusCode}');
     }
   }
 
@@ -631,7 +647,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Error'),
+          title: const Text('Error!!'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
