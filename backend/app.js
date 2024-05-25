@@ -11,6 +11,7 @@ const port = 3000;
 app.use(bodyParser.json());
 
 
+// Initialize Twilio client
 
 // Temporary storage for OTP
 const otpStorage = {};
@@ -80,6 +81,22 @@ const connection = mysql.createConnection({
 
 
 
+
+
+
+
+
+app.post('/sendOTP', async (req, res) => {
+    let { phone_number } = req.body;
+    try {
+        const otp = await sendOTP(phone_number);  // Send OTP and get the generated OTP
+        res.status(200).json({ message: 'OTP sent successfully', otp: otp });
+    } catch (error) {
+        console.error('Error sending OTP:', error);
+        res.status(500).json({ message: 'Error sending OTP' });
+    }
+});
+
 // Endpoint to check if the username exists
 app.post('/check-username', (req, res) => {
     const { username } = req.body;
@@ -105,6 +122,8 @@ app.post('/check-username', (req, res) => {
     });
 });
 
+
+
 // Endpoint to reset password
 app.post('/reset-password', (req, res) => {
     const { username, newPassword } = req.body;
@@ -124,19 +143,28 @@ app.post('/reset-password', (req, res) => {
     });
 });
 
+// Endpoint to verify OTP
+app.post('/verifyOTP', (req, res) => {
+    const { username, phoneNumber, otp } = req.body;
 
+    // Concatenate with country code +977
+    const formattedPhoneNumber = `+977${phoneNumber}`;
 
-
-app.post('/sendOTP', async (req, res) => {
-    let { phone_number } = req.body;
-    try {
-        const otp = await sendOTP(phone_number);  // Send OTP and get the generated OTP
-        res.status(200).json({ message: 'OTP sent successfully', otp: otp });
-    } catch (error) {
-        console.error('Error sending OTP:', error);
-        res.status(500).json({ message: 'Error sending OTP' });
+    // Validate OTP
+    if (otpStorage[formattedPhoneNumber] !== otp) {
+        console.error('Invalid OTP:', otp, 'Expected:', otpStorage[formattedPhoneNumber]);
+        return res.status(401).json({ message: 'Invalid OTP' });
     }
+
+    // Since OTP verification is successful, we can proceed with further actions
+    // For now, we'll just return a success message. You can add your logic here.
+
+    // Delete OTP from temporary storage after successful verification
+    delete otpStorage[formattedPhoneNumber];
+
+    return res.status(200).json({ message: 'OTP verification successful' });
 });
+
 
 app.post('/login', (req, res) => {
     const { emailOrUsername, password } = req.body;
@@ -215,7 +243,49 @@ app.post('/signup', (req, res) => {
 });
 
 
+// // Endpoint to check if the username exists
+// app.post('/check-username', (req, res) => {
+//     const { username } = req.body;
 
+//     if (!username) {
+//         return res.status(400).json({ message: 'Username is required' });
+//     }
+
+//     // Check if the provided username exists in the database
+//     const query = 'SELECT * FROM user WHERE user_name = ?';
+//     connection.query(query, [username], (error, results) => {
+//         if (error) {
+//             console.error('Error executing query:', error);
+//             return res.status(500).json({ message: 'Internal server error' });
+//         }
+
+//         if (results.length === 0) {
+//             return res.status(404).json({ message: 'Username not found' });
+//         }
+
+//         // If username exists, redirect to reset password page
+//         return res.status(200).json({ message: 'Username found', username: username });
+//     });
+// });
+
+// // Endpoint to reset password
+// app.post('/reset-password', (req, res) => {
+//     const { username, newPassword } = req.body;
+
+//     if (!username || !newPassword) {
+//         return res.status(400).json({ message: 'Username and new password are required' });
+//     }
+
+//     // Update password in the database
+//     connection.query('UPDATE user SET password = ? WHERE user_name = ?', [newPassword, username], (error, results) => {
+//         if (error) {
+//             console.error('Error updating password:', error);
+//             return res.status(500).json({ message: 'Internal server error' });
+//         }
+
+//         return res.status(200).json({ message: 'Password reset successful' });
+//     });
+// });
 
 
 app.post('/users', (req, res) => {

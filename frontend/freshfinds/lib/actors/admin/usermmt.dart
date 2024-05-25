@@ -391,7 +391,19 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
         Uri.parse('http://$ipAddress:$port/users/search/name?name=$username'),
       );
 
-      _handleUserResponse(response);
+      if (response.statusCode == 200) {
+        final dynamic responseData = jsonDecode(response.body);
+
+        // Check if the user exists
+        if (responseData['exists']) {
+          // Fetch the user details and update the UI
+          _handleUserResponse(responseData);
+        } else {
+          _showErrorDialog('User not found');
+        }
+      } else {
+        throw Exception('Failed to fetch user: ${response.statusCode}');
+      }
     } catch (e) {
       _showErrorDialog('Failed to fetch user. Please try again later.');
     }
@@ -403,7 +415,7 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
 
       if (responseData['exists'] == true) {
         setState(() {
-          _users = [responseData]; // Remove the wrapping list
+          _users = [responseData]; // Update the user list with the fetched user
         });
       } else {
         setState(() {
@@ -413,11 +425,11 @@ class _UserManagementScreenState extends State<UserManagementScreen> {
       }
     } else if (response.statusCode == 404) {
       setState(() {
-        _users = [];
+        _users = []; // Clear the user list if user not found
       });
       _showErrorDialog('User not found');
     } else {
-      throw Exception('Failed to fetch user: ${response.statusCode}');
+      _showErrorDialog('Failed to fetch user: ${response.statusCode}');
     }
   }
 

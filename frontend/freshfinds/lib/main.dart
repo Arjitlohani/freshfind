@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
         '/vendorDashboard': (context) => VendorDashboardScreen(),
         '/customerDashboard': (context) => DashboardScreen(),
         '/driverDashboard': (context) => DriverDashboardPage(),
-        '/forgotPassword': (context) => ForgotPasswordScreen()
+        '/forgotPassword': (context) => ForgotPasswordScreen(),
       },
     );
   }
