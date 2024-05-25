@@ -924,17 +924,18 @@ app.get('/driver/orders/accepted', (req, res) => {
         res.json({ orders: results });
     });
 });
+
 // Endpoint to handle feedback submission
 app.post('/feedback', (req, res) => {
-    const { orderId, feedback } = req.body;
+    const { orderId, feedback, role } = req.body;
 
-    if (!orderId || !feedback) {
-        return res.status(400).json({ message: 'Order ID and feedback are required' });
+    if (!orderId || !feedback || !role) {
+        return res.status(400).json({ message: 'Order ID, feedback, and role are required' });
     }
 
     // Store the feedback in the database (Assuming there's a 'feedback' table)
-    const query = 'INSERT INTO feedback (order_id, text) VALUES (?, ?)';
-    connection.query(query, [orderId, feedback], (error, results) => {
+    const query = 'INSERT INTO feedback (order_id, feedback, role) VALUES (?, ?, ?)';
+    connection.query(query, [orderId, feedback, role], (error, results) => {
         if (error) {
             console.error('Error storing feedback:', error);
             return res.status(500).json({ message: 'Internal server error' });
@@ -943,6 +944,7 @@ app.post('/feedback', (req, res) => {
         return res.status(200).json({ message: 'Feedback submitted successfully' });
     });
 });
+
 // Backend code to retrieve feedbacks for a specific order
 app.get('/feedbacks/:orderId', (req, res) => {
     const orderId = req.params.orderId;

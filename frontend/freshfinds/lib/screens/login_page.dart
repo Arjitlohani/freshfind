@@ -53,7 +53,8 @@ class _LoginPageState extends State<LoginPage> {
 
           final userProvider =
               Provider.of<UserProvider>(context, listen: false);
-          userProvider.user = User(userId: userId, username: username);
+          userProvider.user =
+              User(userId: userId, username: username, roleId: roleId);
 
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
