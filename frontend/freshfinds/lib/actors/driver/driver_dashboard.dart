@@ -38,7 +38,21 @@ class _DriverDashboardPageState extends State<DriverDashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Driver Dashboard'),
+        title: Consumer<UserProvider>(
+          builder: (context, userProvider, child) {
+            return Text('Driver Dashboard ${userProvider.username}');
+          },
+        ),
+        backgroundColor: const Color.fromARGB(255, 54, 99, 56),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.logout,
+              color: Colors.white,
+            ),
+            onPressed: () => _logout(context),
+          ),
+        ],
       ),
       drawer: Drawer(
         child: ListView(
@@ -222,6 +236,12 @@ class _DriverDashboardPageState extends State<DriverDashboardPage> {
         );
         break;
     }
+  }
+
+  void _logout(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    userProvider.user = null; // Clear the user
+    Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
   }
 
   Future<void> _fetchPlacedOrders() async {

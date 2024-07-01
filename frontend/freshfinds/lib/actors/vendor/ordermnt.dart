@@ -38,34 +38,60 @@ class _VendorOrderManagementPageState extends State<VendorOrderManagementPage> {
                   itemCount: _orders.length,
                   itemBuilder: (context, index) {
                     final order = _orders[index];
-                    return Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      margin: EdgeInsets.all(8),
-                      child: ListTile(
-                        title: Text('Order ID: ${order['order_id']}'),
-                        subtitle: Text(
-                            'Customer ID: ${order['customer_id']}\nTotal Price: Rs. ${order['total_price']}'),
-                        trailing: DropdownButton<String>(
-                          value: order['order_status'],
-                          items: <String>['Placed', 'Dispatched', 'Pending']
-                              .map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          }).toList(),
-                          onChanged: (String? newValue) {
-                            _updateOrderStatus(order['order_id'], newValue!);
+                    // Check if the order status is not "Returned"
+                    if (order['order_status'] != 'Returned') {
+                      return Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        margin: EdgeInsets.all(8),
+                        child: ListTile(
+                          title: Text('Order ID: ${order['order_id']}'),
+                          subtitle: Text(
+                              'Customer ID: ${order['customer_id']}\nTotal Price: Rs. ${order['total_price']}'),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Status: ${order['order_status']}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(width: 8), // Add some spacing
+                              DropdownButton<String>(
+                                hint: Text('Change Status'),
+                                items: <String>[
+                                  'Placed',
+                                  'Pending',
+                                  'Delivered'
+                                ].map<DropdownMenuItem<String>>((String value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Text(value),
+                                  );
+                                }).toList(),
+                                onChanged: (String? newValue) {
+                                  if (newValue != null) {
+                                    _updateOrderStatus(
+                                        order['order_id'], newValue);
+                                  } else {
+                                    print('New value is null.');
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                          onTap: () {
+                            _navigateToOrderDetails(order['order_id']);
                           },
                         ),
-                        onTap: () {
-                          _navigateToOrderDetails(order['order_id']);
-                        },
-                      ),
-                    );
+                      );
+                    } else {
+                      // If the order status is "Returned", return an empty container
+                      return Container();
+                    }
                   },
                 ),
     );
@@ -97,12 +123,14 @@ class _VendorOrderManagementPageState extends State<VendorOrderManagementPage> {
   }
 
   void _navigateToOrderDetails(int orderId) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => OrderDetailsPage(orderId: orderId),
-      ),
-    );
+    if (context != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OrderDetailsPage(orderId: orderId),
+        ),
+      );
+    }
   }
 
   Future<void> _updateOrderStatus(int orderId, String status) async {
@@ -114,10 +142,15 @@ class _VendorOrderManagementPageState extends State<VendorOrderManagementPage> {
     );
 
     if (response.statusCode == 200) {
-      // Refresh the order list
-      _fetchOrders();
+      setState(() {
+        _orders = _orders.map((order) {
+          if (order['order_id'] == orderId) {
+            order['order_status'] = status;
+          }
+          return order;
+        }).toList();
+      });
     } else {
-      // Handle error
       print('Failed to update order status: ${response.statusCode}');
     }
   }

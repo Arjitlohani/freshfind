@@ -4,14 +4,14 @@ const mysql = require('mysql');
 const twilio = require('twilio');
 const multer = require('multer');
 const path = require('path');
-
+const nodemailer = require('nodemailer');
 const app = express();
 const port = 3000;
 
 app.use(bodyParser.json());
 
-// Initialize Twilio client
 
+// Initialize Twilio client
 
 // Temporary storage for OTP
 const otpStorage = {};
@@ -48,6 +48,9 @@ async function sendOTP(phoneNumber) {
 }
 
 
+
+
+
 // Specify the full path to the uploads directory
 const uploadsPath = path.join(__dirname, 'uploads');
 
@@ -76,33 +79,12 @@ const connection = mysql.createConnection({
     database: 'freshfind'
 });
 
-app.post('/login', (req, res) => {
-    const { emailOrUsername, password } = req.body;
 
-    if (!emailOrUsername || !password) {
-        return res.status(400).json({ message: 'Email/Username and password are required' });
-    }
 
-    const query = `
-    SELECT user.*, role.role_id as role
-    FROM user 
-    JOIN role ON user.role = role.role_id 
-    WHERE (email = ? OR user_name = ?) AND password = ?
-`;
 
-    connection.query(query, [emailOrUsername, emailOrUsername, password], (error, results) => {
-        if (error) {
-            console.error('Error executing query:', error);
-            return res.status(500).json({ message: 'Internal server error' });
-        }
 
-        if (results.length === 0) {
-            return res.status(401).json({ message: 'Invalid email/username or password' });
-        }
 
-        return res.status(200).json({ message: 'Login successful', role: results[0].role, user_id: results[0].user_id });
-    });
-});
+
 
 app.post('/sendOTP', async (req, res) => {
     let { phone_number } = req.body;
@@ -114,6 +96,110 @@ app.post('/sendOTP', async (req, res) => {
         res.status(500).json({ message: 'Error sending OTP' });
     }
 });
+
+// Endpoint to check if the username exists
+app.post('/check-username', (req, res) => {
+    const { username } = req.body;
+
+    if (!username) {
+        return res.status(400).json({ message: 'Username is required' });
+    }
+
+    // Check if the provided username exists in the database
+    const query = 'SELECT * FROM user WHERE user_name = ?';
+    connection.query(query, [username], (error, results) => {
+        if (error) {
+            console.error('Error executing query:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+
+        if (results.length === 0) {
+            return res.status(404).json({ message: 'Username not found' });
+        }
+
+        // If username exists, redirect to reset password page
+        return res.status(200).json({ message: 'Username found', username: username });
+    });
+});
+
+
+
+// Endpoint to reset password
+app.post('/reset-password', (req, res) => {
+    const { username, newPassword } = req.body;
+
+    if (!username || !newPassword) {
+        return res.status(400).json({ message: 'Username and new password are required' });
+    }
+
+    // Update password in the database
+    connection.query('UPDATE user SET password = ? WHERE user_name = ?', [newPassword, username], (error, results) => {
+        if (error) {
+            console.error('Error updating password:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+
+        return res.status(200).json({ message: 'Password reset successful' });
+    });
+});
+
+// Endpoint to verify OTP
+app.post('/verifyOTP', (req, res) => {
+    const { username, phoneNumber, otp } = req.body;
+
+    // Concatenate with country code +977
+    const formattedPhoneNumber = `+977${phoneNumber}`;
+
+    // Validate OTP
+    if (otpStorage[formattedPhoneNumber] !== otp) {
+        console.error('Invalid OTP:', otp, 'Expected:', otpStorage[formattedPhoneNumber]);
+        return res.status(401).json({ message: 'Invalid OTP' });
+    }
+
+    // Since OTP verification is successful, we can proceed with further actions
+    // For now, we'll just return a success message. You can add your logic here.
+
+    // Delete OTP from temporary storage after successful verification
+    delete otpStorage[formattedPhoneNumber];
+
+    return res.status(200).json({ message: 'OTP verification successful' });
+});
+
+
+app.post('/login', (req, res) => {
+    const { emailOrUsername, password } = req.body;
+
+    if (!emailOrUsername || !password) {
+        return res.status(400).json({ message: 'Email/Username and password are required' });
+    }
+
+    const query = `
+    SELECT user.user_id, user.user_name as username, role.role_id as role
+    FROM user 
+    JOIN role ON user.role = role.role_id 
+    WHERE (email = ? OR user_name = ?) AND password = ?
+    `;
+
+    connection.query(query, [emailOrUsername, emailOrUsername, password], (error, results) => {
+        if (error) {
+            console.error('Error executing query:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+
+        if (results.length === 0) {
+            return res.status(401).json({ message: 'Invalid email/username or password' });
+        }
+
+        return res.status(200).json({ 
+            message: 'Login successful', 
+            role: results[0].role, 
+            user_id: results[0].user_id, 
+            username: results[0].username 
+        });
+    });
+});
+
+
 
 app.post('/signup', (req, res) => {
     const { username, email, password, phone_number, address, otp } = req.body;
@@ -157,7 +243,49 @@ app.post('/signup', (req, res) => {
 });
 
 
+// // Endpoint to check if the username exists
+// app.post('/check-username', (req, res) => {
+//     const { username } = req.body;
 
+//     if (!username) {
+//         return res.status(400).json({ message: 'Username is required' });
+//     }
+
+//     // Check if the provided username exists in the database
+//     const query = 'SELECT * FROM user WHERE user_name = ?';
+//     connection.query(query, [username], (error, results) => {
+//         if (error) {
+//             console.error('Error executing query:', error);
+//             return res.status(500).json({ message: 'Internal server error' });
+//         }
+
+//         if (results.length === 0) {
+//             return res.status(404).json({ message: 'Username not found' });
+//         }
+
+//         // If username exists, redirect to reset password page
+//         return res.status(200).json({ message: 'Username found', username: username });
+//     });
+// });
+
+// // Endpoint to reset password
+// app.post('/reset-password', (req, res) => {
+//     const { username, newPassword } = req.body;
+
+//     if (!username || !newPassword) {
+//         return res.status(400).json({ message: 'Username and new password are required' });
+//     }
+
+//     // Update password in the database
+//     connection.query('UPDATE user SET password = ? WHERE user_name = ?', [newPassword, username], (error, results) => {
+//         if (error) {
+//             console.error('Error updating password:', error);
+//             return res.status(500).json({ message: 'Internal server error' });
+//         }
+
+//         return res.status(200).json({ message: 'Password reset successful' });
+//     });
+// });
 
 
 app.post('/users', (req, res) => {
@@ -595,6 +723,83 @@ app.get('/userDetails/:id', (req, res) => {
     });
 });
 
+// Fetch All Orders
+app.get('/orders', (req, res) => {
+    const query = `
+      SELECT * FROM orders
+    `;
+  
+    connection.query(query, (error, results) => { 
+
+      if (error) {
+        console.error('Error fetching orders:', error);
+        return res.status(500).json({ error: 'Failed to fetch orders' });
+      }
+  
+      res.json({ orders: results });
+    });
+});
+
+app.get('/orders/count', (req, res) => {
+    const query = `
+      SELECT 
+        COUNT(*) AS totalOrders,
+        SUM(order_status = 'placed') AS placedOrders,
+        SUM(order_status = 'pending') AS pendingOrders,
+        SUM(order_status = 'delivered') AS deliveredOrders
+      FROM orders
+    `;
+  
+    connection.query(query, (error, results) => { 
+
+      if (error) {
+        console.error('Error fetching order counts:', error);
+        return res.status(500).json({ error: 'Failed to fetch order counts' });
+      }
+  
+      // Return the aggregated counts
+      res.json({
+        totalOrders: results[0].totalOrders,
+        placedOrders: results[0].placedOrders,
+        pendingOrders: results[0].pendingOrders,
+        deliveredOrders: results[0].deliveredOrders
+      });
+    });
+});
+
+// Endpoint to get order statistics for a vendor
+app.get('/vendors/:vendorId/orders/stats', (req, res) => {
+    const vendorId = parseInt(req.params.vendorId);
+  
+    const query = `
+      SELECT 
+        COUNT(*) AS totalOrders,
+        SUM(order_status = 'placed') AS placedOrders,
+        SUM(order_status = 'accepted') AS acceptedOrders,
+        SUM(order_status = 'delivered') AS deliveredOrders
+      FROM orders WHERE vendor_id = ?
+   
+    `;
+   //   WHERE vendor_id = ?
+    connection.query(query, [vendorId], (error, results) => {
+      if (error) {
+        console.error('Error fetching order counts:', error);
+        return res.status(500).json({ error: 'Failed to fetch order counts' });
+      }
+  
+      // Return the aggregated counts
+      res.json({
+        totalOrders: results[0].totalOrders,
+        placedOrders: results[0].placedOrders,
+        acceptedOrders: results[0].acceptedOrders,
+        deliveredOrders: results[0].deliveredOrders
+      });
+    });
+  });
+
+
+
+
 
 
 // Fetch Orders for customer
@@ -622,6 +827,59 @@ app.get('/customer/orders', (req, res) => {
 });
 
 
+
+// Endpoint to update order status by order ID and return products to inventory
+app.put('/orders/:id/status', (req, res) => {
+    const orderId = req.params.id;
+    const { order_status } = req.body;
+
+    // Check if order status is provided
+    if (!order_status) {
+        return res.status(400).json({ message: 'Order status is required' });
+    }
+
+    // Query to update order status in the database
+    const updateOrderQuery = 'UPDATE orders SET order_status = ? WHERE order_id = ?';
+    connection.query(updateOrderQuery, [order_status, orderId], (error, updateOrderResults) => {
+        if (error) {
+            console.error('Error updating order status:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+
+        // Check if the order was updated successfully
+        if (updateOrderResults.affectedRows === 0) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+       
+
+            // Return success message
+            return res.status(200).json({ message: 'Order status updated successfully' });
+        });
+  
+});
+
+// Endpoint to increase product quantity in inventory by order ID
+app.put('/orders/:id/inventory', (req, res) => {
+    const orderId = req.params.id;
+
+    // Update the product quantities in inventory
+    const updateInventoryQuery = `
+        UPDATE products p
+        JOIN order_items oi ON p.product_id = oi.product_id
+        SET p.quantity = p.quantity + oi.quantity
+        WHERE oi.order_id = ?
+    `;
+    connection.query(updateInventoryQuery, [orderId], (inventoryError, inventoryResults) => {
+        if (inventoryError) {
+            console.error('Error updating inventory:', inventoryError);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+
+        // Return success message
+        return res.status(200).json({ message: 'Inventory updated successfully' });
+    });
+});
 
 
 // Fetch Orders for Vendor
@@ -737,11 +995,53 @@ app.get('/driver/orders/accepted', (req, res) => {
     });
 });
 
+// Endpoint to handle feedback submission
+app.post('/feedback', (req, res) => {
+    const { orderId, feedback, role } = req.body;
+
+    if (!orderId || !feedback || !role) {
+        return res.status(400).json({ message: 'Order ID, feedback, and role are required' });
+    }
+
+    // Store the feedback in the database (Assuming there's a 'feedback' table)
+    const query = 'INSERT INTO feedback (order_id, feedback, role) VALUES (?, ?, ?)';
+    connection.query(query, [orderId, feedback, role], (error, results) => {
+        if (error) {
+            console.error('Error storing feedback:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+
+        return res.status(200).json({ message: 'Feedback submitted successfully' });
+    });
+});
+
+// Backend code to retrieve feedbacks for a specific order
+app.get('/feedbacks/:orderId', (req, res) => {
+    const orderId = req.params.orderId;
+
+    if (!orderId) {
+        return res.status(400).json({ message: 'Order ID is required' });
+    }
+
+    // Retrieve feedbacks from the database for the given order ID
+    const query = 'SELECT * FROM feedback WHERE order_id = ?';
+    connection.query(query, [orderId], (error, results) => {
+        if (error) {
+            console.error('Error retrieving feedbacks:', error);
+            return res.status(500).json({ message: 'Internal server error' });
+        }
+
+        return res.status(200).json(results);
+    });
+});
+
 
 app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send('Something broke!');
 });
+
+
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);

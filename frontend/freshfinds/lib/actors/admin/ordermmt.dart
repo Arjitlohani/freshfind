@@ -1,64 +1,75 @@
-// ordermmt.dart
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:freshfinds/models/port.dart';
+import 'package:http/http.dart' as http;
 
-class OrderManagementScreen extends StatelessWidget {
-  final List<Order> orders;
+class OrderManagementScreen extends StatefulWidget {
+  @override
+  _OrderManagementScreenState createState() => _OrderManagementScreenState();
+}
 
-  const OrderManagementScreen({super.key, required this.orders});
+class _OrderManagementScreenState extends State<OrderManagementScreen> {
+  List<dynamic> _orders = [];
+  bool _isLoading = true;
 
-  List<Order> get filteredOrders =>
-      orders.where((order) => !order.isCompleted).toList();
+  @override
+  void initState() {
+    super.initState();
+    _fetchOrders();
+  }
+
+  Future<void> _fetchOrders() async {
+    final url = Uri.parse('http://$ipAddress:$port/orders');
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+
+        setState(() {
+          _orders = responseData['orders'];
+          _isLoading = false;
+        });
+      } else {
+        throw Exception('Failed to load orders: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching orders: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Order Management'),
+        title: Text('Order Management'),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              itemCount: filteredOrders.length,
-              itemBuilder: (context, index) {
-                final order = filteredOrders[index];
-                return ListTile(
-                  title: Text('Order ID: ${order.id}'),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Customer: ${order.customerName}'),
-                      Text('Items: ${order.items.join(', ')}'),
-                      Text(
-                          'Total Amount: \$${order.totalAmount.toStringAsFixed(2)}'),
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : _orders.isEmpty
+              ? Center(child: Text('No orders found'))
+              : SingleChildScrollView(
+                  child: DataTable(
+                    columns: [
+                      DataColumn(label: Text('Order ID')),
+                      DataColumn(label: Text('Order Status')),
+                      DataColumn(label: Text('Total Price')),
                     ],
+                    rows: _orders.map((order) {
+                      return DataRow(
+                        cells: [
+                          DataCell(Text('${order['order_id']}')),
+                          DataCell(Text('${order['order_status']}')),
+                          DataCell(Text('Rs. ${order['total_price']}')),
+                        ],
+                      );
+                    }).toList(),
                   ),
-                  trailing: ElevatedButton(
-                    onPressed: () {},
-                    child: const Text('Mark Completed'),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
+                ),
     );
   }
-}
-
-class Order {
-  final int id;
-  final String customerName;
-  final List<String> items;
-  final double totalAmount;
-  final bool isCompleted;
-
-  Order({
-    required this.id,
-    required this.customerName,
-    required this.items,
-    required this.totalAmount,
-    this.isCompleted = false,
-  });
 }

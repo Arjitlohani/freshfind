@@ -1,7 +1,9 @@
+import 'dart:convert';
+import 'package:freshfinds/models/port.dart';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
-// Importing fl_chart library
+import 'package:freshfinds/actors/admin/ordermmt.dart';
 
-import 'productmmt.dart';
 import 'usermmt.dart';
 
 void main() {
@@ -35,7 +37,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           'Admin Dashboard',
           style: TextStyle(color: Colors.white),
         ),
-        backgroundColor: const Color.fromARGB(255, 54, 99, 56),
+        backgroundColor: const Color.fromARGB(255, 118, 166, 64),
         actions: [
           IconButton(
             icon: const Icon(
@@ -73,12 +75,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             label: 'Products',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
-            label: 'Orders',
-          ),
-          BottomNavigationBarItem(
             icon: Icon(Icons.person),
             label: 'Users',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.shopping_cart),
+            label: 'Orders',
           ),
         ],
       ),
@@ -89,12 +91,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     switch (index) {
       case 0:
         return const HomeScreen();
+      // case 1:
+      //   return const ProductManagementScreen();
       case 1:
-        return const ProductManagementScreen();
-      case 2:
         // Call the OrderManagementScreen method here
-        return Container();
-      case 3:
+        return OrderManagementScreen();
+      case 2:
         return const UserManagementScreen();
       default:
         return Container(); // Placeholder
@@ -137,17 +139,17 @@ class AdminDrawer extends StatelessWidget {
             title: const Text('Home'),
             onTap: () => onTap(0),
           ),
+          // ListTile(
+          //   title: const Text('Product Management'),
+          //   onTap: () => onTap(1),
+          // ),
           ListTile(
-            title: const Text('Product Management'),
+            title: const Text('Order Management'),
             onTap: () => onTap(1),
           ),
           ListTile(
-            title: const Text('Order Management'),
-            onTap: () => onTap(2),
-          ),
-          ListTile(
             title: const Text('User Management'),
-            onTap: () => onTap(3),
+            onTap: () => onTap(2),
           ),
         ],
       ),
@@ -155,8 +157,45 @@ class AdminDrawer extends StatelessWidget {
   }
 }
 
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int totalOrders = 0;
+  int placedOrders = 0;
+  int pendingOrders = 0;
+  int deliveredOrders = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchOrderStatistics();
+  }
+
+  Future<void> fetchOrderStatistics() async {
+    try {
+      final response =
+          await http.get(Uri.parse('http://$ipAddress:$port/orders/count'));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          totalOrders = data['totalOrders'];
+          placedOrders = data['placedOrders'];
+          pendingOrders = data['pendingOrders'];
+          deliveredOrders = data['deliveredOrders'];
+        });
+      } else {
+        throw Exception('Failed to load order statistics');
+      }
+    } catch (error) {
+      print('Error: $error');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -166,16 +205,18 @@ class HomeScreen extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Expanded(child: _buildContainer('Total Orders', '100')),
-            Expanded(child: _buildContainer('Dispatched Orders', '50')),
+            Expanded(child: _buildContainer('Total Orders', '$totalOrders')),
+            Expanded(child: _buildContainer('Placed Orders', '$placedOrders')),
           ],
         ),
         const SizedBox(height: 20),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Expanded(child: _buildContainer('Pending Orders', '30')),
-            Expanded(child: _buildContainer('Orders Delivered', '20')),
+            Expanded(
+                child: _buildContainer('Pending Orders', '$pendingOrders')),
+            Expanded(
+                child: _buildContainer('Orders Delivered', '$deliveredOrders')),
           ],
         ),
         const SizedBox(height: 20),
@@ -209,7 +250,7 @@ class HomeScreen extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       margin: const EdgeInsets.symmetric(horizontal: 10),
       decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 54, 99, 56),
+        color: Colors.lightGreen,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -223,7 +264,9 @@ class HomeScreen extends StatelessWidget {
           Text(
             value,
             style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold),
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
